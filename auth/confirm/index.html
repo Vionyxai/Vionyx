@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -7,151 +8,154 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500&display=swap');
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+```
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-    html, body {
-      height: 100%;
-      background: #000000;
-      color: #ffffff;
-      font-family: 'Inter', system-ui, sans-serif;
-      overflow: hidden;
-    }
+html, body {
+  height: 100%;
+  background: #000000;
+  color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+}
 
-    .page {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: 48px 32px;
-      position: relative;
-      text-align: center;
-    }
+.page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 48px 32px;
+  position: relative;
+  text-align: center;
+}
 
-    /* Top wordmark */
-    .wordmark {
-      font-family: 'Inter', sans-serif;
-      font-weight: 500;
-      font-size: 13px;
-      letter-spacing: 0.3em;
-      color: #fff;
-      text-transform: uppercase;
-    }
+/* Top wordmark */
+.wordmark {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: #fff;
+  text-transform: uppercase;
+}
 
-    /* Center content */
-    .center {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 32px;
-      position: relative;
-      text-align: center;
-    }
+/* Center content */
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  position: relative;
+  text-align: center;
+}
 
-    .vmark {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -42%);
-      width: 220px;
-      opacity: 0.08;
-      pointer-events: none;
-      z-index: 0;
-    }
+.vmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -42%);
+  width: 220px;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
 
-    .center {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 32px;
-      position: relative;
-      text-align: center;
-      width: 100%;
-    }
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
 
-    .headline {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: clamp(36px, 9vw, 52px);
-      font-weight: 700;
-      line-height: 1.1;
-      letter-spacing: -0.01em;
-      color: #ffffff;
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      width: 100%;
-    }
+.headline {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(36px, 9vw, 52px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  width: 100%;
+}
 
-    .subtext {
-      font-size: 13px;
-      font-weight: 300;
-      letter-spacing: 0.08em;
-      color: rgba(255,255,255,0.55);
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      width: 100%;
-    }
+.subtext {
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.55);
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  width: 100%;
+}
 
-    .btn {
-      margin-top: 8px;
-      display: inline-block;
-      padding: 14px 40px;
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 4px;
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.2em;
-      color: #fff;
-      text-decoration: none;
-      text-transform: uppercase;
-      background: transparent;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      position: relative;
-      z-index: 1;
-    }
+.btn {
+  margin-top: 8px;
+  display: inline-block;
+  padding: 14px 40px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: #fff;
+  text-decoration: none;
+  text-transform: uppercase;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+  z-index: 1;
+}
 
-    .btn:hover {
-      border-color: rgba(255,255,255,0.6);
-      background: rgba(255,255,255,0.04);
-    }
+.btn:hover {
+  border-color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.04);
+}
 
-    /* Status states */
-    .status {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      color: rgba(255,255,255,0.3);
-      position: relative;
-      z-index: 1;
-      min-height: 16px;
-    }
+/* Status states */
+.status {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.3);
+  position: relative;
+  z-index: 1;
+  min-height: 16px;
+}
 
-    .status.error { color: rgba(239, 68, 68, 0.7); }
-    .status.success { color: rgba(255,255,255,0.4); }
+.status.error { color: rgba(239, 68, 68, 0.7); }
+.status.success { color: rgba(255,255,255,0.4); }
 
-    /* Bottom domain */
-    .domain {
-      font-size: 11px;
-      letter-spacing: 0.25em;
-      color: rgba(255,255,255,0.2);
-      text-transform: uppercase;
-    }
+/* Bottom domain */
+.domain {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.2);
+  text-transform: uppercase;
+}
 
-    /* Loading pulse */
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 0.7; }
-    }
-    .loading { animation: pulse 1.5s ease-in-out infinite; }
+/* Loading pulse */
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+.loading { animation: pulse 1.5s ease-in-out infinite; }
 
-    /* Fade in */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .center { animation: fadeUp 0.8s ease forwards; }
+/* Fade in */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.center { animation: fadeUp 0.8s ease forwards; }
+```
+
   </style>
 </head>
 <body>
@@ -159,16 +163,19 @@
     <div style="flex:1; display:flex; align-items:center; justify-content:center; width:100%;">
       <div class="center">
       <!-- V watermark SVG -->
-      <img class="vmark" src="https://vionyx-xi.vercel.app/logo.png" alt="" />
+      <img class="vmark" src="./logo.png" alt="" />
 
-      <div class="headline" id="headline">You're in.</div>
-      <div class="subtext" id="subtext">It learns how you think. Then it grows with you.</div>
-      <div class="status loading" id="status">Confirming your account...</div>
-      <a class="btn" id="cta" href="https://vionyx-xi.vercel.app" style="display:none;">Start your first entry</a>
-      </div>
-    </div>
+```
+  <div class="headline" id="headline">You're in.</div>
+  <div class="subtext" id="subtext">It learns how you think. Then it grows with you.</div>
+  <div class="status loading" id="status">Confirming your account...</div>
+  <a class="btn" id="cta" href="https://vionyx-xi.vercel.app" style="display:none;">Start your first entry</a>
+  </div>
+</div>
 
-    <div class="domain">VIONYX.AI</div>
+<div class="domain">VIONYX.AI</div>
+```
+
   </div>
 
   <script>
@@ -225,5 +232,7 @@
 
     confirmEmail();
   </script>
+
 </body>
 </html>
+
