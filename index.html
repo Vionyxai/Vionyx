@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -94,7 +95,7 @@
   <div id="auth-screen" class="auth-screen">
     <div class="auth-card">
       <div class="auth-logo">VIONYX</div>
-      <div class="auth-sub">REFLECT &middot; COMMIT &middot; EXECUTE</div>
+      <div class="auth-sub">STATE STABILIZATION SYSTEM</div>
       <div class="auth-tabs">
         <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
         <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Create Account</button>
@@ -122,40 +123,43 @@
       </div>
     </div>
 
-    <div id="reflect-tab" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
-      <div class="chat-area" id="chat-area">
-        <div class="chat-empty" id="chat-empty">
-          <div class="chat-empty-symbol">&#10022;</div>
-          <div class="chat-empty-main">What is present right now?</div>
-          <div class="chat-empty-sub">Say as much or as little as you want.</div>
-        </div>
-      </div>
-      <div class="err-bar hidden" id="err-bar"></div>
-      <div class="save-banner hidden" id="save-banner">
-        <div class="save-banner-label">
-          <span class="dot" id="save-dot"></span>
-          <span>Save this to your journal?</span>
-        </div>
-        <div class="save-actions">
-          <button class="save-btn secondary" onclick="dismissSave()">Skip</button>
-          <button class="save-btn primary" onclick="confirmSave()">Save</button>
-        </div>
-      </div>
-      <div class="input-row">
-        <textarea class="msg-textarea" id="msg-input" rows="2" placeholder="Say what is on your mind..."></textarea>
-        <button class="send-btn" id="send-btn" onclick="sendMessage()">&#8593;</button>
-      </div>
+```
+<div id="reflect-tab" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+  <div class="chat-area" id="chat-area">
+    <div class="chat-empty" id="chat-empty">
+      <div class="chat-empty-symbol">&#10022;</div>
+      <div class="chat-empty-main">What is present right now?</div>
+      <div class="chat-empty-sub">Say as much or as little as you want.</div>
     </div>
+  </div>
+  <div class="err-bar hidden" id="err-bar"></div>
+  <div class="save-banner hidden" id="save-banner">
+    <div class="save-banner-label">
+      <span class="dot" id="save-dot"></span>
+      <span>Save this to your journal?</span>
+    </div>
+    <div class="save-actions">
+      <button class="save-btn secondary" onclick="dismissSave()">Skip</button>
+      <button class="save-btn primary" onclick="confirmSave()">Save</button>
+    </div>
+  </div>
+  <div class="input-row">
+    <textarea class="msg-textarea" id="msg-input" rows="2" placeholder="Say what is on your mind..."></textarea>
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">&#8593;</button>
+  </div>
+</div>
 
-    <div id="journal-tab" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
-      <div class="filter-row">
-        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
-        <button class="filter-btn inactive" onclick="setFilter('journals',this)">Journals</button>
-        <button class="filter-btn inactive" onclick="setFilter('commitments',this)">Commitments</button>
-        <button class="filter-btn inactive" onclick="setFilter('completed',this)">Completed</button>
-      </div>
-      <div class="journal-list" id="journal-list"></div>
-    </div>
+<div id="journal-tab" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn inactive" onclick="setFilter('journals',this)">Journals</button>
+    <button class="filter-btn inactive" onclick="setFilter('commitments',this)">Commitments</button>
+    <button class="filter-btn inactive" onclick="setFilter('completed',this)">Completed</button>
+  </div>
+  <div class="journal-list" id="journal-list"></div>
+</div>
+```
+
   </div>
 </div>
 
@@ -497,5 +501,7 @@ function renderJournal() {
   });
 }
 </script>
+
 </body>
 </html>
+
