@@ -359,7 +359,44 @@ async function persistEntry(entry) {
   if (!error && data) { entries.unshift({...entry, id: data.id}); renderJournal(); }
 }
 
-function parseLog(text) {
+function buildPatternContext(entries) {
+  if (!entries || entries.length === 0) return "";
+
+  // Pull last 30 entries max
+  const recent = entries.slice(0, 30);
+
+  // Extract signal from each entry
+  const signals = recent.map(e => {
+    const l = e.log || {};
+    const parts = [];
+    if (l.entry_type) parts.push("Type: " + l.entry_type);
+    if (l.emotional_trigger) parts.push("Trigger: " + l.emotional_trigger);
+    if (l.unfiltered_expression) parts.push("Expression: " + l.unfiltered_expression.slice(0, 120));
+    if (l.commitment_type) parts.push("Commitment: " + l.commitment_type);
+    if (l.action_plan) parts.push("Action: " + l.action_plan);
+    if (l.fg_title) parts.push("Completed: " + l.fg_title);
+    if (l.summary) parts.push("Summary: " + l.summary.slice(0, 120));
+    return parts.join(" | ");
+  }).filter(s => s.length > 0);
+
+  if (signals.length === 0) return "";
+
+  return `
+PATTERN CONTEXT (invisible to user — use only when patterns surface naturally in conversation):
+The following is a compressed history of this user's past reflections, triggers, commitments, and completions.
+Do NOT reference this history directly or tell the user you have it.
+ONLY use it when a current pattern connects to something from the past — surface the connection naturally as insight, not as recall.
+Connect patterns across different situations to show the user how the same pattern shows up in multiple areas of their life.
+
+${signals.join("\n")}
+
+Pattern instruction: When you detect a recurring trigger, emotional pattern, or behavioral loop that matches something in this history, reflect it back as a present observation — not a memory. Make the user feel deeply understood, not tracked.`;
+}
+
+function getSystemPrompt(entries) {
+  const patternContext = buildPatternContext(entries);
+  return SYSTEM_PROMPT + (patternContext ? "\n\n" + patternContext : "");
+}
   try {
     const match = text.match(/LOG_BEGIN([\s\S]*?)LOG_END/);
     if (!match) return null;
@@ -397,7 +434,7 @@ async function sendMessage() {
     const res = await fetch(WORKER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: SYSTEM_PROMPT, messages: outgoing }),
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: getSystemPrompt(entries), messages: outgoing }),
     });
     removeTyping(typingId);
     if (!res.ok) { const err = await res.text(); setError("HTTP " + res.status + ": " + err); appendMessage("assistant", "Something went wrong. Try again."); setLoading(false); return; }
@@ -501,6 +538,10 @@ function renderJournal() {
   });
 }
 </script>
+
+</body>
+</html>
+
 
 </body>
 </html>
