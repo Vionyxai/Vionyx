@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -24,7 +23,7 @@
     .auth-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; letter-spacing: 0.22em; color: #fff; text-align: center; }
     .auth-sub { font-size: 11px; color: var(--text3); text-align: center; margin-top: -12px; letter-spacing: 0.12em; }
     .auth-tabs { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 2px; }
-    .auth-tab { flex: 1; padding: 7px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; font-family: 'Syne', sans-serif; letter-spacing: 0.05em; background: transparent; color: var(--text3); transition: all 0.15s; }
+    .auth-tab { flex: 1; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; font-family: 'Syne', sans-serif; letter-spacing: 0.05em; background: transparent; color: var(--text3); transition: all 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; }
     .auth-tab.active { background: var(--bg); color: var(--accent2); }
     .auth-input { background: var(--bg); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 14px; font-family: inherit; outline: none; width: 100%; transition: border-color 0.2s; }
     .auth-input:focus { border-color: var(--accent); }
@@ -97,8 +96,8 @@
       <div class="auth-logo">VIONYX</div>
       <div class="auth-sub">STATE STABILIZATION SYSTEM</div>
       <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
-        <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Create Account</button>
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')" type="button">Sign In</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')" type="button">Create Account</button>
       </div>
       <input class="auth-input" id="auth-email" type="email" placeholder="Email address" />
       <input class="auth-input" id="auth-password" type="password" placeholder="Password" />
@@ -123,43 +122,40 @@
       </div>
     </div>
 
-```
-<div id="reflect-tab" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
-  <div class="chat-area" id="chat-area">
-    <div class="chat-empty" id="chat-empty">
-      <div class="chat-empty-symbol">&#10022;</div>
-      <div class="chat-empty-main">What is present right now?</div>
-      <div class="chat-empty-sub">Say as much or as little as you want.</div>
+    <div id="reflect-tab" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+      <div class="chat-area" id="chat-area">
+        <div class="chat-empty" id="chat-empty">
+          <div class="chat-empty-symbol">&#10022;</div>
+          <div class="chat-empty-main">What is present right now?</div>
+          <div class="chat-empty-sub">Say as much or as little as you want.</div>
+        </div>
+      </div>
+      <div class="err-bar hidden" id="err-bar"></div>
+      <div class="save-banner hidden" id="save-banner">
+        <div class="save-banner-label">
+          <span class="dot" id="save-dot"></span>
+          <span>Save this to your journal?</span>
+        </div>
+        <div class="save-actions">
+          <button class="save-btn secondary" onclick="dismissSave()">Skip</button>
+          <button class="save-btn primary" onclick="confirmSave()">Save</button>
+        </div>
+      </div>
+      <div class="input-row">
+        <textarea class="msg-textarea" id="msg-input" rows="2" placeholder="Say what is on your mind..."></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">&#8593;</button>
+      </div>
     </div>
-  </div>
-  <div class="err-bar hidden" id="err-bar"></div>
-  <div class="save-banner hidden" id="save-banner">
-    <div class="save-banner-label">
-      <span class="dot" id="save-dot"></span>
-      <span>Save this to your journal?</span>
-    </div>
-    <div class="save-actions">
-      <button class="save-btn secondary" onclick="dismissSave()">Skip</button>
-      <button class="save-btn primary" onclick="confirmSave()">Save</button>
-    </div>
-  </div>
-  <div class="input-row">
-    <textarea class="msg-textarea" id="msg-input" rows="2" placeholder="Say what is on your mind..."></textarea>
-    <button class="send-btn" id="send-btn" onclick="sendMessage()">&#8593;</button>
-  </div>
-</div>
 
-<div id="journal-tab" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
-  <div class="filter-row">
-    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
-    <button class="filter-btn inactive" onclick="setFilter('journals',this)">Journals</button>
-    <button class="filter-btn inactive" onclick="setFilter('commitments',this)">Commitments</button>
-    <button class="filter-btn inactive" onclick="setFilter('completed',this)">Completed</button>
-  </div>
-  <div class="journal-list" id="journal-list"></div>
-</div>
-```
-
+    <div id="journal-tab" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn inactive" onclick="setFilter('journals',this)">Journals</button>
+        <button class="filter-btn inactive" onclick="setFilter('commitments',this)">Commitments</button>
+        <button class="filter-btn inactive" onclick="setFilter('completed',this)">Completed</button>
+      </div>
+      <div class="journal-list" id="journal-list"></div>
+    </div>
   </div>
 </div>
 
@@ -538,11 +534,5 @@ function renderJournal() {
   });
 }
 </script>
-
 </body>
 </html>
-
-
-</body>
-</html>
-
