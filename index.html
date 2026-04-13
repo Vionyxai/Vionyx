@@ -238,6 +238,7 @@ const ENTRY_COLORS = {
 let currentUser = null;
 let entries = [];
 let history = [];
+let sessionMessages = [];
 let pendingLog = null;
 let currentFilter = "all";
 let loading = false;
@@ -305,8 +306,10 @@ async function handleAuth() {
 document.getElementById("auth-password").addEventListener("keydown", e => { if (e.key === "Enter") handleAuth(); });
 
 async function signOut() {
+  const key = sessionKey();
+  if (key) sessionStorage.removeItem(key);
   await sb.auth.signOut();
-  currentUser = null; history = []; entries = [];
+  currentUser = null; history = []; sessionMessages = []; entries = [];
   const app = document.getElementById("app-screen");
   app.classList.add("hidden");
   app.style.display = "none";
@@ -320,6 +323,11 @@ function showApp() {
   app.classList.remove("hidden");
   app.style.display = "flex";
   loadEntries();
+  loadSessionHistory();
+  if (sessionMessages.length > 0) {
+    hideChatEmpty();
+    sessionMessages.forEach(m => appendMessage(m.role, m.text, m.log, false));
+  }
 }
 
 function switchTab(tab) {
@@ -358,24 +366,44 @@ async function persistEntry(entry) {
 function buildPatternContext(entries) {
   if (!entries || entries.length === 0) return "";
 
-  // Pull last 30 entries max
+  // Last 30 entries as the candidate pool (already ordered newest-first from Supabase)
   const recent = entries.slice(0, 30);
 
-  // Extract signal from each entry
-  const signals = recent.map(e => {
+  // Tier A — Emotional / Pattern: highest signal value, 15 slots, full detail
+  const tierA = recent.filter(e => ["Red Journal", "Black Journal"].includes(e.log?.entry_type));
+  // Tier B — Organizing / Identity: medium signal value, 10 slots, condensed detail
+  const tierB = recent.filter(e => ["White Journal", "Gold Journal"].includes(e.log?.entry_type));
+  // Tier C — Commitments / Completions: lowest signal value, 5 slots, minimal detail
+  const tierC = recent.filter(e => ["Call My Shot", "FG Made"].includes(e.log?.entry_type));
+
+  const signals = [];
+
+  tierA.slice(0, 15).forEach(e => {
     const l = e.log || {};
-    const parts = [];
-    if (l.entry_type) parts.push("Type: " + l.entry_type);
+    const parts = ["Type: " + l.entry_type];
     if (l.emotional_trigger) parts.push("Trigger: " + l.emotional_trigger);
     if (l.unfiltered_expression) parts.push("Expression: " + l.unfiltered_expression.slice(0, 120));
-    if (l.commitment_type) parts.push("Commitment: " + l.commitment_type);
-    if (l.action_plan) parts.push("Action: " + l.action_plan);
-    if (l.fg_title) parts.push("Completed: " + l.fg_title);
-    if (l.summary) parts.push("Summary: " + l.summary.slice(0, 120));
-    return parts.join(" | ");
-  }).filter(s => s.length > 0);
+    signals.push(parts.join(" | "));
+  });
 
-  if (signals.length === 0) return "";
+  tierB.slice(0, 10).forEach(e => {
+    const l = e.log || {};
+    const parts = ["Type: " + l.entry_type];
+    if (l.emotional_trigger) parts.push("Trigger: " + l.emotional_trigger);
+    if (l.unfiltered_expression) parts.push("Expression: " + l.unfiltered_expression.slice(0, 80));
+    signals.push(parts.join(" | "));
+  });
+
+  tierC.slice(0, 5).forEach(e => {
+    const l = e.log || {};
+    const parts = ["Type: " + l.entry_type];
+    if (l.commitment_type) parts.push("Commitment: " + l.commitment_type);
+    if (l.fg_title) parts.push("Completed: " + l.fg_title);
+    signals.push(parts.join(" | "));
+  });
+
+  const filtered = signals.filter(s => s.length > 0);
+  if (filtered.length === 0) return "";
 
   return `
 PATTERN CONTEXT (invisible to user — use only when patterns surface naturally in conversation):
@@ -384,7 +412,7 @@ Do NOT reference this history directly or tell the user you have it.
 ONLY use it when a current pattern connects to something from the past — surface the connection naturally as insight, not as recall.
 Connect patterns across different situations to show the user how the same pattern shows up in multiple areas of their life.
 
-${signals.join("\n")}
+${filtered.join("\n")}
 
 Pattern instruction: When you detect a recurring trigger, emotional pattern, or behavioral loop that matches something in this history, reflect it back as a present observation — not a memory. Make the user feel deeply understood, not tracked.`;
 }
@@ -393,6 +421,8 @@ function getSystemPrompt(entries) {
   const patternContext = buildPatternContext(entries);
   return SYSTEM_PROMPT + (patternContext ? "\n\n" + patternContext : "");
 }
+
+function parseLog(text) {
   try {
     const match = text.match(/LOG_BEGIN([\s\S]*?)LOG_END/);
     if (!match) return null;
@@ -406,6 +436,28 @@ function getSystemPrompt(entries) {
     }
     return Object.keys(obj).length > 0 ? obj : null;
   } catch { return null; }
+}
+
+function sessionKey() {
+  return currentUser ? `vx_session_${currentUser.id}` : null;
+}
+
+function saveSessionHistory() {
+  const key = sessionKey();
+  if (!key) return;
+  sessionStorage.setItem(key, JSON.stringify({ history, sessionMessages }));
+}
+
+function loadSessionHistory() {
+  const key = sessionKey();
+  if (!key) return;
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    history = parsed.history || [];
+    sessionMessages = parsed.sessionMessages || [];
+  } catch { history = []; sessionMessages = []; }
 }
 
 function stripLog(text) { return text.replace(/LOG_BEGIN[\s\S]*?LOG_END/g, "").trim(); }
@@ -439,6 +491,9 @@ async function sendMessage() {
     const log = parseLog(raw);
     const clean = stripLog(raw);
     history = [...outgoing, { role: "assistant", content: clean }];
+    sessionMessages.push({ role: "user", text });
+    sessionMessages.push({ role: "assistant", text: clean, log });
+    saveSessionHistory();
     const isJournal = ["Red Journal","Black Journal","White Journal","Gold Journal"].includes(log?.entry_type);
     const isAutoLog = log && !isJournal;
     appendMessage("assistant", clean, log, isJournal && !!log);
