@@ -30,10 +30,13 @@
     ul li { margin-bottom: 6px; }
     a { color: var(--accent2); text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .placeholder { color: #f59e0b; background: #1f1a0a; border: 1px solid #4a3a0a; border-radius: 4px; padding: 1px 6px; font-size: 12px; font-family: 'Syne', sans-serif; }
     .section-divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
     .contact-block { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-top: 40px; }
     .contact-block p { margin-bottom: 6px; }
+    .sensitive-notice { font-size: 13px; color: var(--text2); padding: 16px 20px; background: #1a0f2a; border-left: 3px solid var(--accent2); border-radius: 0 8px 8px 0; margin-bottom: 14px; line-height: 1.7; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
+    th { text-align: left; padding: 8px 12px; background: var(--bg2); color: var(--text3); font-family: 'Syne', sans-serif; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--border); }
+    td { padding: 10px 12px; color: var(--text2); border: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
   </style>
 </head>
 <body>
@@ -46,79 +49,124 @@
 <div class="doc">
   <div class="doc-label">Legal</div>
   <div class="doc-title">Privacy Policy</div>
-  <!-- PLACEHOLDER: Update effective date if re-published -->
-  <div class="doc-date">Effective date: April 14, 2026</div>
+  <div class="doc-date">Effective date: April 14, 2026 &nbsp;·&nbsp; Governing law: State of California</div>
 
   <div class="doc-intro">
-    VIONYX is a behavioral intelligence platform. You share personal and emotional data with us to use the service. We take that seriously. This policy explains exactly what we collect, why, how it is stored, and what rights you have over it — including the right to delete everything.
+    VIONYX is a behavioral intelligence platform. You share personal and emotional data with us to use the service. We take that seriously. This policy explains exactly what we collect, why, how it is stored, and what rights you have — including the right to access, correct, and permanently delete everything. This policy complies with the California Consumer Privacy Act (CCPA) and the California Privacy Rights Act (CPRA).
   </div>
 
   <h2>1. Who We Are</h2>
   <!-- PLACEHOLDER: Replace "VIONYX AI" with formal legal entity name once incorporated -->
-  <p>VIONYX AI ("VIONYX," "we," "us," or "our") operates the VIONYX platform, accessible at vionyx-xi.vercel.app. We are based in California.</p>
+  <p>VIONYX AI ("VIONYX," "we," "us," or "our") operates the VIONYX behavioral intelligence platform, accessible at vionyx-xi.vercel.app. We are based in California and subject to California privacy law.</p>
+  <p>Contact for all privacy matters: <a href="mailto:vionyxai555@gmail.com">vionyxai555@gmail.com</a></p>
 
   <h2>2. What We Collect</h2>
-  <p>When you use VIONYX, we collect the following:</p>
-  <ul>
-    <li><strong>Account information</strong> — your email address and encrypted password, managed by Supabase Auth.</li>
-    <li><strong>Conversation content</strong> — every message you send and every AI response you receive during a reflection session.</li>
-    <li><strong>Journal entry data</strong> — when an entry is saved, we store: the entry type, emotional trigger, full expression content, commitment details, action plans, deadlines, completion records, and associated timestamps.</li>
-    <li><strong>Session metadata</strong> — timestamps of sessions and entry creation. We do not collect device fingerprints, IP addresses, or advertising identifiers.</li>
-  </ul>
-  <p>We do not use third-party analytics SDKs, advertising pixels, or tracking cookies.</p>
+  <p>When you use VIONYX, we collect the following categories of personal information:</p>
+  <table>
+    <tr>
+      <th>Category</th>
+      <th>What it includes</th>
+      <th>Retention period</th>
+    </tr>
+    <tr>
+      <td>Account identifiers</td>
+      <td>Email address, encrypted password hash, unique user ID</td>
+      <td>Until account deletion</td>
+    </tr>
+    <tr>
+      <td>Conversation content</td>
+      <td>Every message you send and every AI response you receive during a reflection session</td>
+      <td>Session duration only (browser sessionStorage, cleared on tab close or sign-out)</td>
+    </tr>
+    <tr>
+      <td>Journal entry data</td>
+      <td>Entry type, emotional trigger, full expression content, commitment details, action plans, deadlines, completion records, timestamps</td>
+      <td>Indefinitely until deletion request</td>
+    </tr>
+    <tr>
+      <td>Sensitive personal information</td>
+      <td>Emotional states, mental and behavioral patterns, identity-level reflections shared in session</td>
+      <td>Indefinitely until deletion request (see Section 4)</td>
+    </tr>
+  </table>
+  <p>We do not collect device fingerprints, IP addresses, precise geolocation, advertising identifiers, or payment card numbers directly. We do not use third-party analytics SDKs, advertising pixels, or tracking cookies of any kind.</p>
 
   <h2>3. Why We Collect It</h2>
-  <p>All data collected has one purpose: to provide you with the VIONYX service. Specifically:</p>
+  <p>All data collected has one purpose: providing you with the VIONYX service. Specifically:</p>
   <ul>
     <li>To authenticate your account and maintain your session.</li>
     <li>To store your journal entries so they persist across sessions.</li>
-    <li>To build a compressed pattern context from your history, which is injected into the AI's session to enable pattern recognition across time.</li>
-    <li>To improve the platform over time based on aggregate, non-identifying usage patterns.</li>
+    <li>To build a compressed pattern context from your history, which is injected into the AI's session to enable pattern recognition over time.</li>
+    <li>To improve the platform based on aggregate, non-identifying usage patterns.</li>
   </ul>
-  <p><strong>We do not sell your data to third parties.</strong> We do not use your data for advertising. We do not share your individual data with other users.</p>
+  <p>We do not sell your personal information. We do not share your personal information with third parties for cross-context behavioral advertising. We do not use your data to train AI models.</p>
 
-  <h2>4. How It Is Stored</h2>
-  <p>Your data is stored in Supabase, a cloud database provider. Supabase encrypts data at rest using AES-256 and in transit using TLS 1.2+. Your data is stored in a dedicated, access-controlled database table.</p>
-  <p>AI processing happens through the Anthropic Claude API, routed through a Cloudflare Worker proxy. Messages sent to the AI are processed to generate responses and are not stored by Anthropic under their API terms of service. Your conversation content is not retained by Anthropic after processing.</p>
-  <p>Session history is temporarily stored in your browser's sessionStorage and is cleared when you close the tab or sign out.</p>
+  <h2>4. Sensitive Personal Information</h2>
+  <div class="sensitive-notice">
+    Under the California Privacy Rights Act (CPRA), information that reveals your mental or emotional health, psychological state, or behavioral patterns is classified as <strong>sensitive personal information</strong>. The content you share in VIONYX — including emotional triggers, unfiltered expressions, and pattern reflections — falls within this category.
+  </div>
+  <p>We use sensitive personal information solely to provide the VIONYX service to you. We do not sell it, share it for advertising, or use it for any purpose beyond what you explicitly use the platform for.</p>
+  <p>You have the right to direct us to limit the use and disclosure of your sensitive personal information to what is necessary to perform the service. To exercise this right, contact us at <a href="mailto:vionyxai555@gmail.com">vionyxai555@gmail.com</a>.</p>
 
-  <h2>5. Who Can Access It</h2>
-  <p>Access to your data is restricted to the VIONYX team for the purposes of product operation, support, and improvement. No individual user's data is accessible to other users of the platform.</p>
-  <p>We may access your data to diagnose technical issues if you report a problem, and only with the minimum access necessary.</p>
+  <h2>5. How It Is Stored</h2>
+  <p><strong>Supabase</strong> — Your account data and journal entries are stored in Supabase, a cloud database provider acting as our service provider. Supabase encrypts data at rest using AES-256 and in transit using TLS 1.2 or higher. Your data is stored in a dedicated, access-controlled database table. Supabase processes your data only as directed by VIONYX and under a data processing agreement.</p>
+  <p><strong>Anthropic Claude API</strong> — AI responses are generated through the Anthropic Claude API, routed through a Cloudflare Worker proxy operated by VIONYX. Messages sent to the AI are processed to generate responses. Anthropic does not store or train on API inputs under their API usage policies. Your conversation content is not retained by Anthropic or Cloudflare after processing.</p>
+  <p><strong>Browser sessionStorage</strong> — Conversation history within an active session is temporarily stored in your browser's sessionStorage. This data is scoped to your tab and is automatically cleared when you close the tab or sign out. It never leaves your device.</p>
 
-  <h2>6. Data Retention</h2>
-  <p>Your journal entries and conversation history are stored indefinitely until you request deletion. We retain data for as long as your account is active or as needed to provide the service.</p>
-  <p>When you request account deletion, all associated entries and personal data are permanently removed from our systems within 30 days.</p>
-
-  <h2>7. Your Rights Under CCPA</h2>
-  <p>If you are a California resident, you have the following rights under the California Consumer Privacy Act (CCPA):</p>
+  <h2>6. Service Providers</h2>
+  <p>We share personal information with the following service providers solely to operate the platform. These companies are contractually prohibited from using your data for their own purposes:</p>
   <ul>
-    <li><strong>Right to know</strong> — you can request a full export of the personal information we hold about you.</li>
-    <li><strong>Right to delete</strong> — you can request permanent deletion of all your personal data.</li>
-    <li><strong>Right to opt out of sale</strong> — we do not sell personal information. This right does not apply, but we disclose it for completeness.</li>
-    <li><strong>Right to non-discrimination</strong> — exercising any of these rights will not affect your access to VIONYX or the quality of service you receive.</li>
+    <li><strong>Supabase</strong> — database storage and authentication</li>
+    <li><strong>Anthropic</strong> — AI response generation via API (no retention post-processing)</li>
+    <li><strong>Cloudflare</strong> — API proxy routing</li>
+    <li><strong>Vercel</strong> — application hosting and delivery</li>
   </ul>
-  <p>To exercise any of these rights, email us at
-    <!-- PLACEHOLDER: Replace with verified privacy email before scaling -->
-    <a href="mailto:privacy@vionyx.ai">privacy@vionyx.ai</a>
-    with your account email address. We will respond within 45 days.
-  </p>
+  <p>We do not sell your data to any of these providers or any other party. We do not share your individual data with other VIONYX users.</p>
 
-  <h2>8. Children's Privacy</h2>
-  <p>VIONYX is not directed to individuals under the age of 18. We do not knowingly collect personal information from minors. If you believe a minor has submitted data to VIONYX, contact us and we will delete it promptly.</p>
+  <h2>7. Your California Privacy Rights</h2>
+  <p>If you are a California resident, you have the following rights under CCPA and CPRA:</p>
+  <ul>
+    <li><strong>Right to know</strong> — request a disclosure of the categories and specific pieces of personal information we have collected about you, the sources, the business purpose, and the categories of third parties with whom it has been shared.</li>
+    <li><strong>Right to access</strong> — request a portable copy of your personal information in a readily usable format.</li>
+    <li><strong>Right to correct</strong> — request correction of inaccurate personal information we maintain about you.</li>
+    <li><strong>Right to delete</strong> — request permanent deletion of your personal information. Upon verification, we will delete your data and direct our service providers to do the same within 30 days.</li>
+    <li><strong>Right to limit sensitive PI processing</strong> — direct us to limit use of your sensitive personal information to what is necessary to perform the service.</li>
+    <li><strong>Right to opt out of sale or sharing</strong> — we do not sell or share personal information for cross-context behavioral advertising. This right is preserved but not applicable to our current practices.</li>
+    <li><strong>Right to non-discrimination</strong> — exercising any of these rights will not result in denial of service, different pricing, or a lower level of service quality.</li>
+  </ul>
+  <p>To exercise any of these rights, email <a href="mailto:vionyxai555@gmail.com">vionyxai555@gmail.com</a> with your account email and the specific right you wish to exercise. We will respond within 45 days. If we need additional time (up to 90 days total), we will notify you within the initial 45-day window with an explanation.</p>
+  <p>We may need to verify your identity before processing a request. We will not require you to create an account to submit a request, and we will not charge a fee for reasonable requests.</p>
 
-  <h2>9. Changes to This Policy</h2>
-  <p>We may update this Privacy Policy as the platform evolves. Material changes will be communicated via email to registered users. Continued use of the platform after changes are posted constitutes acceptance of the updated policy.</p>
+  <h2>8. Do Not Track</h2>
+  <p>California law requires us to disclose how we respond to Do Not Track (DNT) signals. VIONYX does not use tracking cookies, behavioral advertising, or cross-site tracking of any kind. DNT signals have no effect on our data practices because we do not engage in the tracking activities those signals are designed to limit.</p>
+
+  <h2>9. Shine the Light Disclosure</h2>
+  <p>California Civil Code Section 1798.83 (the "Shine the Light" law) permits California residents to request information about personal data shared with third parties for those parties' direct marketing purposes. VIONYX does not share personal information with third parties for their direct marketing purposes. No disclosure is required under this law, but we make this statement for completeness.</p>
+
+  <h2>10. Data Retention</h2>
+  <p>We retain each category of personal information for the periods described in Section 2. In general:</p>
+  <ul>
+    <li>Account identifiers are retained until you delete your account.</li>
+    <li>Journal entry data and sensitive personal information are retained indefinitely until you submit a deletion request.</li>
+    <li>Conversation session data exists only in your browser's sessionStorage and is never stored on our servers.</li>
+  </ul>
+  <p>To request deletion of your account and all associated data, email <a href="mailto:vionyxai555@gmail.com">vionyxai555@gmail.com</a>. We will complete deletion within 30 days and confirm when it is done.</p>
+
+  <h2>11. Children's Privacy</h2>
+  <p>VIONYX is not directed to individuals under the age of 18 and we do not knowingly collect personal information from minors. If you believe a minor has submitted data, contact us immediately and we will delete it.</p>
+
+  <h2>12. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy as the platform evolves. Material changes will be communicated via email to registered users at least 30 days before taking effect. Continued use of the platform after changes take effect constitutes acceptance of the updated policy. The effective date at the top of this document will be updated with each revision.</p>
 
   <hr class="section-divider" />
 
   <div class="contact-block">
     <h2 style="margin-top:0;">Contact</h2>
-    <p>For privacy requests, data deletion, or questions about this policy:</p>
-    <!-- PLACEHOLDER: Replace with verified privacy email before scaling -->
-    <p><a href="mailto:privacy@vionyx.ai">privacy@vionyx.ai</a></p>
-    <!-- PLACEHOLDER: Update with formal legal entity name and address once incorporated -->
-    <p style="margin-top:12px; font-size:12px; color:var(--text3);">VIONYX AI · California, United States</p>
+    <p>For all privacy requests — data access, correction, deletion, or questions about this policy:</p>
+    <p><a href="mailto:vionyxai555@gmail.com">vionyxai555@gmail.com</a></p>
+    <p>We aim to respond to all privacy requests within 45 days.</p>
+    <!-- PLACEHOLDER: Update with formal legal entity name, mailing address, and registered agent once incorporated -->
+    <p style="margin-top:12px; font-size:12px; color:var(--text3);">VIONYX AI &nbsp;·&nbsp; California, United States</p>
   </div>
 </div>
 
