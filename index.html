@@ -86,6 +86,13 @@
     .status-chip { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-family: 'Syne', sans-serif; font-weight: 600; }
     .journal-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 60px 20px; }
     .hidden { display: none !important; }
+    .auth-legal { font-size: 10px; color: var(--text3); text-align: center; line-height: 1.6; }
+    .auth-legal a { color: var(--text3); text-decoration: underline; }
+    .auth-legal a:hover { color: var(--text2); }
+    .app-footer { display: flex; align-items: center; gap: 8px; padding: 7px 24px; border-top: 1px solid var(--border); font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: 0.06em; flex-shrink: 0; }
+    .app-footer a { color: var(--text3); text-decoration: none; }
+    .app-footer a:hover { color: var(--text2); }
+    .footer-right { margin-left: auto; }
   </style>
 </head>
 <body>
@@ -107,6 +114,7 @@
       <div id="auth-error" class="auth-error hidden"></div>
       <div id="auth-msg" class="auth-msg hidden"></div>
       <button class="auth-btn" id="auth-submit" onclick="handleAuth()">ENTER SESSION</button>
+      <div class="auth-legal">By continuing, you agree to our <a href="/legal/terms/" target="_blank">Terms of Service</a> and <a href="/legal/privacy/" target="_blank">Privacy Policy</a>.</div>
     </div>
   </div>
 
@@ -155,6 +163,12 @@
         <button class="filter-btn inactive" onclick="setFilter('completed',this)">Completed</button>
       </div>
       <div class="journal-list" id="journal-list"></div>
+    </div>
+    <div class="app-footer">
+      <a href="/legal/privacy/" target="_blank">Privacy Policy</a>
+      <span>&#183;</span>
+      <a href="/legal/terms/" target="_blank">Terms of Service</a>
+      <span class="footer-right">VIONYX.AI &copy; 2026</span>
     </div>
   </div>
 </div>

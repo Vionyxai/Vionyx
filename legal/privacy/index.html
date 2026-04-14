@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — VIONYX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080809; --bg2: #0f0f12;
+      --border: #1c1c24;
+      --text: #e2e2e6; --text2: #9090a0; --text3: #444450;
+      --accent2: #9d5cf6;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.7; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 54px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+    .topbar-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.2em; color: #fff; text-decoration: none; }
+    .back-link { font-size: 11px; color: var(--text3); text-decoration: none; font-family: 'Syne', sans-serif; letter-spacing: 0.08em; transition: color 0.15s; }
+    .back-link:hover { color: var(--text2); }
+    .doc { max-width: 680px; margin: 0 auto; padding: 64px 40px 100px; }
+    .doc-label { font-size: 10px; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.2em; color: var(--text3); text-transform: uppercase; margin-bottom: 16px; }
+    .doc-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 32px; letter-spacing: 0.04em; color: #fff; margin-bottom: 8px; }
+    .doc-date { font-size: 12px; color: var(--text3); margin-bottom: 48px; }
+    .doc-intro { font-size: 14px; color: var(--text2); margin-bottom: 48px; padding: 20px 24px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; line-height: 1.75; }
+    h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent2); margin: 40px 0 14px; }
+    p { color: var(--text2); margin-bottom: 14px; font-size: 14px; }
+    ul { color: var(--text2); margin: 0 0 14px 20px; font-size: 14px; }
+    ul li { margin-bottom: 6px; }
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .placeholder { color: #f59e0b; background: #1f1a0a; border: 1px solid #4a3a0a; border-radius: 4px; padding: 1px 6px; font-size: 12px; font-family: 'Syne', sans-serif; }
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+    .contact-block { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-top: 40px; }
+    .contact-block p { margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-logo" href="https://vionyx-xi.vercel.app">VIONYX</a>
+  <a class="back-link" href="https://vionyx-xi.vercel.app">&#8592; Back to app</a>
+</div>
+
+<div class="doc">
+  <div class="doc-label">Legal</div>
+  <div class="doc-title">Privacy Policy</div>
+  <!-- PLACEHOLDER: Update effective date if re-published -->
+  <div class="doc-date">Effective date: April 14, 2026</div>
+
+  <div class="doc-intro">
+    VIONYX is a behavioral intelligence platform. You share personal and emotional data with us to use the service. We take that seriously. This policy explains exactly what we collect, why, how it is stored, and what rights you have over it — including the right to delete everything.
+  </div>
+
+  <h2>1. Who We Are</h2>
+  <!-- PLACEHOLDER: Replace "VIONYX AI" with formal legal entity name once incorporated -->
+  <p>VIONYX AI ("VIONYX," "we," "us," or "our") operates the VIONYX platform, accessible at vionyx-xi.vercel.app. We are based in California.</p>
+
+  <h2>2. What We Collect</h2>
+  <p>When you use VIONYX, we collect the following:</p>
+  <ul>
+    <li><strong>Account information</strong> — your email address and encrypted password, managed by Supabase Auth.</li>
+    <li><strong>Conversation content</strong> — every message you send and every AI response you receive during a reflection session.</li>
+    <li><strong>Journal entry data</strong> — when an entry is saved, we store: the entry type, emotional trigger, full expression content, commitment details, action plans, deadlines, completion records, and associated timestamps.</li>
+    <li><strong>Session metadata</strong> — timestamps of sessions and entry creation. We do not collect device fingerprints, IP addresses, or advertising identifiers.</li>
+  </ul>
+  <p>We do not use third-party analytics SDKs, advertising pixels, or tracking cookies.</p>
+
+  <h2>3. Why We Collect It</h2>
+  <p>All data collected has one purpose: to provide you with the VIONYX service. Specifically:</p>
+  <ul>
+    <li>To authenticate your account and maintain your session.</li>
+    <li>To store your journal entries so they persist across sessions.</li>
+    <li>To build a compressed pattern context from your history, which is injected into the AI's session to enable pattern recognition across time.</li>
+    <li>To improve the platform over time based on aggregate, non-identifying usage patterns.</li>
+  </ul>
+  <p><strong>We do not sell your data to third parties.</strong> We do not use your data for advertising. We do not share your individual data with other users.</p>
+
+  <h2>4. How It Is Stored</h2>
+  <p>Your data is stored in Supabase, a cloud database provider. Supabase encrypts data at rest using AES-256 and in transit using TLS 1.2+. Your data is stored in a dedicated, access-controlled database table.</p>
+  <p>AI processing happens through the Anthropic Claude API, routed through a Cloudflare Worker proxy. Messages sent to the AI are processed to generate responses and are not stored by Anthropic under their API terms of service. Your conversation content is not retained by Anthropic after processing.</p>
+  <p>Session history is temporarily stored in your browser's sessionStorage and is cleared when you close the tab or sign out.</p>
+
+  <h2>5. Who Can Access It</h2>
+  <p>Access to your data is restricted to the VIONYX team for the purposes of product operation, support, and improvement. No individual user's data is accessible to other users of the platform.</p>
+  <p>We may access your data to diagnose technical issues if you report a problem, and only with the minimum access necessary.</p>
+
+  <h2>6. Data Retention</h2>
+  <p>Your journal entries and conversation history are stored indefinitely until you request deletion. We retain data for as long as your account is active or as needed to provide the service.</p>
+  <p>When you request account deletion, all associated entries and personal data are permanently removed from our systems within 30 days.</p>
+
+  <h2>7. Your Rights Under CCPA</h2>
+  <p>If you are a California resident, you have the following rights under the California Consumer Privacy Act (CCPA):</p>
+  <ul>
+    <li><strong>Right to know</strong> — you can request a full export of the personal information we hold about you.</li>
+    <li><strong>Right to delete</strong> — you can request permanent deletion of all your personal data.</li>
+    <li><strong>Right to opt out of sale</strong> — we do not sell personal information. This right does not apply, but we disclose it for completeness.</li>
+    <li><strong>Right to non-discrimination</strong> — exercising any of these rights will not affect your access to VIONYX or the quality of service you receive.</li>
+  </ul>
+  <p>To exercise any of these rights, email us at
+    <!-- PLACEHOLDER: Replace with verified privacy email before scaling -->
+    <a href="mailto:privacy@vionyx.ai">privacy@vionyx.ai</a>
+    with your account email address. We will respond within 45 days.
+  </p>
+
+  <h2>8. Children's Privacy</h2>
+  <p>VIONYX is not directed to individuals under the age of 18. We do not knowingly collect personal information from minors. If you believe a minor has submitted data to VIONYX, contact us and we will delete it promptly.</p>
+
+  <h2>9. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy as the platform evolves. Material changes will be communicated via email to registered users. Continued use of the platform after changes are posted constitutes acceptance of the updated policy.</p>
+
+  <hr class="section-divider" />
+
+  <div class="contact-block">
+    <h2 style="margin-top:0;">Contact</h2>
+    <p>For privacy requests, data deletion, or questions about this policy:</p>
+    <!-- PLACEHOLDER: Replace with verified privacy email before scaling -->
+    <p><a href="mailto:privacy@vionyx.ai">privacy@vionyx.ai</a></p>
+    <!-- PLACEHOLDER: Update with formal legal entity name and address once incorporated -->
+    <p style="margin-top:12px; font-size:12px; color:var(--text3);">VIONYX AI · California, United States</p>
+  </div>
+</div>
+
+</body>
+</html>
