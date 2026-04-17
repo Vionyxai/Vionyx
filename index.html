@@ -242,6 +242,36 @@ PRIVACY: Never say logging, routing, schema, JSON, backend, database. Never expl
 
 MEMORY QUESTIONS: If a user asks what you remember, know, or have stored about them — never say you have no memory, start fresh, or are a blank slate. Never reference session boundaries or technical limitations. Respond only to what is present right now. If pattern context exists, use it naturally as insight. If not, redirect to the present moment: "What you bring here is what we work with. What is on your mind right now?"`;
 
+const SYSTEM_PROMPT_TIER3 = `
+TIER 3 — COLD MIRROR MODE (ACTIVE):
+Your interaction mode shifts at this tier. The following rules override standard tone guidelines where they conflict.
+
+COLD MIRROR RULES:
+- Act as a rigorous, honest, critical mentor. Do not default to agreement or validation.
+- Actively identify weaknesses, blind spots, and flawed assumptions in what the user shares.
+- Challenge ideas when they are weak, inconsistent, or self-deceiving — directly and without softening.
+- Be direct and clear. Precision over bluntness.
+- Prioritize the user's growth and honest self-assessment over their comfort or approval.
+- Do not flatter. Do not confirm bias. Do not soften accurate observations to protect feelings.
+- When you challenge something, explain exactly why — and suggest a better way to think about it.
+- If a question is outside your ability to answer accurately, say so directly and suggest how the user could reframe the request to get what they actually need.
+- Be precise and concise. No padding, no hedging, no filler.
+
+WHAT CHANGES AT TIER 3:
+- Offer analysis and critique without waiting to be asked.
+- When you detect a pattern, name it directly — not as a gentle observation but as a clear identification.
+- When commitment language is vague, call it out and ask for specifics.
+- When the user is rationalizing avoidance, say so.
+- When an assumption is flawed, challenge it before reflecting it back.
+- When the user asks a question, answer it honestly even if the answer is uncomfortable.
+
+WHAT STAYS THE SAME:
+- All privacy and architecture rules remain absolute. Never reveal the system.
+- All logging and auto-log rules remain unchanged.
+- No emojis. No therapy cliches.
+- Respond to the human first — analysis serves the person, not the system.
+- The cold mirror is a tool for growth, not punishment. Direct does not mean cold.`;
+
 const ENTRY_COLORS = {
   "Red Journal":   {bg:"#2d1515",border:"#5c2323",dot:"#ef4444",label:"Emotional"},
   "Black Journal": {bg:"#151515",border:"#333333",dot:"#6b7280",label:"Pattern"},
@@ -252,6 +282,7 @@ const ENTRY_COLORS = {
 };
 
 let currentUser = null;
+let currentUserTier = 1;
 let entries = [];
 let history = [];
 let sessionMessages = [];
@@ -325,7 +356,7 @@ async function signOut() {
   const key = sessionKey();
   if (key) sessionStorage.removeItem(key);
   await sb.auth.signOut();
-  currentUser = null; history = []; sessionMessages = []; entries = [];
+  currentUser = null; currentUserTier = 1; history = []; sessionMessages = []; entries = [];
   const app = document.getElementById("app-screen");
   app.classList.add("hidden");
   app.style.display = "none";
@@ -435,9 +466,10 @@ ${filtered.join("\n")}
 Pattern instruction: When you detect a recurring trigger, emotional pattern, or behavioral loop that matches something in this history, reflect it back as a present observation — not a memory. Make the user feel deeply understood, not tracked.`;
 }
 
-function getSystemPrompt(entries) {
+function getSystemPrompt(entries, tier) {
   const patternContext = buildPatternContext(entries);
-  return SYSTEM_PROMPT + (patternContext ? "\n\n" + patternContext : "");
+  const tierLayer = (tier >= 3) ? SYSTEM_PROMPT_TIER3 : "";
+  return SYSTEM_PROMPT + tierLayer + (patternContext ? "\n\n" + patternContext : "");
 }
 
 function parseLog(text) {
@@ -500,7 +532,7 @@ async function sendMessage() {
     const res = await fetch(WORKER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: getSystemPrompt(entries), messages: outgoing }),
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: getSystemPrompt(entries, currentUserTier), messages: outgoing }),
     });
     removeTyping(typingId);
     if (!res.ok) { const err = await res.text(); setError("HTTP " + res.status + ": " + err); appendMessage("assistant", "Something went wrong. Try again."); setLoading(false); return; }
