@@ -385,14 +385,10 @@ async function persistEntry(entry) {
 function buildPatternContext(entries) {
   if (!entries || entries.length === 0) return "";
 
-  // Last 30 entries as the candidate pool (already ordered newest-first from Supabase)
   const recent = entries.slice(0, 30);
 
-  // Tier A — Emotional / Pattern: highest signal value, 15 slots, full detail
   const tierA = recent.filter(e => ["Red Journal", "Black Journal"].includes(e.log?.entry_type));
-  // Tier B — Organizing / Identity: medium signal value, 10 slots, condensed detail
   const tierB = recent.filter(e => ["White Journal", "Gold Journal"].includes(e.log?.entry_type));
-  // Tier C — Commitments / Completions: lowest signal value, 5 slots, minimal detail
   const tierC = recent.filter(e => ["Call My Shot", "FG Made"].includes(e.log?.entry_type));
 
   const signals = [];

@@ -72,7 +72,6 @@
       }
 
       try {
-        // Actually complete the Supabase email verification
         const { error } = await sb.auth.verifyOtp({ token_hash, type });
 
         if (error) {
@@ -86,7 +85,6 @@
         status.className = "status success";
         cta.style.display = "inline-block";
 
-        // Auto-redirect after 3s
         setTimeout(() => {
           window.location.href = "https://vionyx-xi.vercel.app";
         }, 3000);

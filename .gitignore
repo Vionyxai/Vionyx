@@ -1,0 +1,22 @@
+# Internal documentation — never commit
+INTERNAL.md
+.internal
+
+# Architecture and planning documents
+*.docx
+*.doc
+
+# Environment files
+.env
+.env.local
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
