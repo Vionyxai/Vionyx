@@ -16,7 +16,7 @@
       --accent: #7c3aed; --accent2: #9d5cf6; --accent-dim: #2d1a5c;
     }
     html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; font-size: 14px; overflow: hidden; }
-    #root { display: flex; flex-direction: column; height: 100vh; }
+    #root { display: flex; flex-direction: column; height: 100vh; max-width: 900px; margin: 0 auto; }
     ::-webkit-scrollbar { width: 0; }
     .auth-screen { flex: 1; display: flex; align-items: center; justify-content: center; }
     .auth-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 52px 44px; width: 380px; display: flex; flex-direction: column; gap: 20px; }
@@ -93,6 +93,35 @@
     .app-footer a { color: var(--text3); text-decoration: none; }
     .app-footer a:hover { color: var(--text2); }
     .footer-right { margin-left: auto; }
+    .status-screen { flex: 1; display: flex; align-items: center; justify-content: center; }
+    .status-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 52px 44px; width: 400px; display: flex; flex-direction: column; gap: 20px; text-align: center; }
+    .status-eyebrow { font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: 0.18em; text-transform: uppercase; }
+    .status-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.1em; color: #fff; }
+    .status-body { font-size: 13px; color: var(--text2); line-height: 1.65; }
+    .status-btn { padding: 13px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; font-size: 12px; font-family: 'Syne', sans-serif; background: var(--accent); color: #fff; letter-spacing: 0.1em; transition: background 0.2s; }
+    .status-btn:hover { background: var(--accent2); }
+    .status-link-btn { background: transparent; border: 1px solid var(--border2); color: var(--text3); padding: 10px; border-radius: 10px; cursor: pointer; font-size: 12px; font-family: 'Syne', sans-serif; letter-spacing: 0.06em; transition: all 0.15s; width: 100%; }
+    .status-link-btn:hover { color: var(--text2); }
+    .tier-btn { font-size: 11px; color: var(--accent2); background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 20px; padding: 4px 12px; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.08em; transition: all 0.15s; }
+    .tier-btn:hover { background: var(--accent); color: #fff; }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; z-index: 999; }
+    .upgrade-modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 40px 36px; width: 520px; max-width: 92vw; display: flex; flex-direction: column; gap: 24px; max-height: 90vh; overflow-y: auto; }
+    .upgrade-modal-header { display: flex; align-items: center; justify-content: space-between; }
+    .upgrade-modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: 0.1em; color: #fff; }
+    .upgrade-close { background: transparent; border: none; color: var(--text3); font-size: 20px; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 6px; transition: color 0.15s; }
+    .upgrade-close:hover { color: var(--text); }
+    .tier-cards { display: flex; flex-direction: column; gap: 12px; }
+    .tier-card { border-radius: 14px; padding: 20px; border: 1px solid var(--border2); background: var(--bg3); display: flex; flex-direction: column; gap: 8px; }
+    .tier-card.active { border-color: var(--accent); background: var(--accent-dim); }
+    .tier-card-header { display: flex; align-items: center; justify-content: space-between; }
+    .tier-card-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.1em; color: #fff; }
+    .tier-card-badge { font-size: 9px; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.12em; padding: 3px 8px; border-radius: 4px; }
+    .tier-card-badge.current { background: var(--accent-dim); color: var(--accent2); border: 1px solid var(--accent); }
+    .tier-card-badge.soon { background: #1a1a2a; color: var(--text3); border: 1px solid var(--border2); }
+    .tier-card-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+    .upgrade-cta { font-size: 12px; color: var(--text2); line-height: 1.7; text-align: center; padding: 16px; background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; }
+    .upgrade-cta a { color: var(--accent2); text-decoration: none; }
+    .upgrade-cta a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -126,6 +155,7 @@
         <button class="tab-btn" id="tab-journal" onclick="switchTab('journal')">JOURNAL</button>
       </div>
       <div class="topbar-right">
+        <button class="tier-btn" id="tier-btn" onclick="openUpgradePanel()">TIER 1</button>
         <button class="signout-btn" onclick="signOut()">Sign out</button>
       </div>
     </div>
@@ -171,6 +201,60 @@
       <span class="footer-right">VIONYX.AI &copy; 2026</span>
     </div>
   </div>
+
+  <div id="pending-screen" class="status-screen hidden">
+    <div class="status-card">
+      <div class="status-eyebrow">Access Status</div>
+      <div class="status-title">Application Under Review</div>
+      <div class="status-body">Your account is pending approval. Once access is granted you will be able to begin your first session.</div>
+      <button class="status-btn" onclick="openUpgradePanel()">See what you&rsquo;re waiting for</button>
+      <button class="status-link-btn" onclick="signOut()">Sign out</button>
+    </div>
+  </div>
+
+  <div id="suspended-screen" class="status-screen hidden">
+    <div class="status-card">
+      <div class="status-eyebrow">Access Status</div>
+      <div class="status-title">Access Suspended</div>
+      <div class="status-body">Your access has been suspended. If you believe this is an error, reach out directly.</div>
+      <a href="mailto:access@vionyx.ai" style="text-decoration:none;"><button class="status-btn" style="width:100%;">Contact Support</button></a>
+      <button class="status-link-btn" onclick="signOut()">Sign out</button>
+    </div>
+  </div>
+
+  <div id="upgrade-panel" class="overlay hidden">
+    <div class="upgrade-modal">
+      <div class="upgrade-modal-header">
+        <div class="upgrade-modal-title">ACCESS TIERS</div>
+        <button class="upgrade-close" onclick="closeUpgradePanel()">&times;</button>
+      </div>
+      <div class="tier-cards">
+        <div class="tier-card" id="tier-card-1">
+          <div class="tier-card-header">
+            <div class="tier-card-name">TIER 1 &mdash; WITNESS</div>
+            <span class="tier-card-badge" id="tier-badge-1"></span>
+          </div>
+          <div class="tier-card-desc">Full presence, zero pressure. You direct the session. The system reflects and observes without guiding, pushing, or auto-logging anything on your behalf.</div>
+        </div>
+        <div class="tier-card" id="tier-card-2">
+          <div class="tier-card-header">
+            <div class="tier-card-name">TIER 2 &mdash; CALIBRATED</div>
+            <span class="tier-card-badge" id="tier-badge-2"></span>
+          </div>
+          <div class="tier-card-desc">Pattern identification and commitment accountability. The system applies pressure when useful, names avoidance when it sees it, and auto-logs commitments and completions.</div>
+        </div>
+        <div class="tier-card" id="tier-card-3">
+          <div class="tier-card-header">
+            <div class="tier-card-name">TIER 3 &mdash; COLD MIRROR</div>
+            <span class="tier-card-badge soon" id="tier-badge-3">COMING SOON</span>
+          </div>
+          <div class="tier-card-desc">Direct and unflinching. Challenges weak commitments and cuts through self-deception. Tier 3 access is by invitation only.</div>
+        </div>
+      </div>
+      <div class="upgrade-cta">To request access or upgrade your tier, email <a href="mailto:access@vionyx.ai">access@vionyx.ai</a></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -242,6 +326,25 @@ PRIVACY: Never say logging, routing, schema, JSON, backend, database. Never expl
 
 MEMORY QUESTIONS: If a user asks what you remember, know, or have stored about them — never say you have no memory, start fresh, or are a blank slate. Never reference session boundaries or technical limitations. Respond only to what is present right now. If pattern context exists, use it naturally as insight. If not, redirect to the present moment: "What you bring here is what we work with. What is on your mind right now?"`;
 
+const SYSTEM_PROMPT_TIER1 = `
+TIER 1 — WITNESS MODE:
+You are in pure observation mode. Your role is to reflect and hold space — not to direct, pressure, or initiate action.
+Never suggest the user do anything, commit to anything, or resolve anything.
+Never auto-log commitments or completions. Do NOT append LOG_BEGIN blocks for Commitment or Completion types unless the user explicitly commands it with phrases like: save, log this, mark that, CMS, FG Made.
+Match the user's energy without amplifying or redirecting it.
+Witness without agenda.`;
+
+const SYSTEM_PROMPT_TIER2 = `
+TIER 2 — CALIBRATED MODE:
+You have permission to apply structured pressure when it serves the user.
+Name avoidance when you see it. Hold the user to their stated commitments.
+Sharpen vague intentions into specific commitments where possible.
+Auto-log commitments and completions when clearly signaled (LOG_BEGIN applies normally).
+Ask one clarifying question when an intention is too vague to act on.
+Pattern recognition is active — connect current behavior to past patterns directly.`;
+
+const SYSTEM_PROMPT_TIER3 = ``;
+
 const ENTRY_COLORS = {
   "Red Journal":   {bg:"#2d1515",border:"#5c2323",dot:"#ef4444",label:"Emotional"},
   "Black Journal": {bg:"#151515",border:"#333333",dot:"#6b7280",label:"Pattern"},
@@ -253,6 +356,7 @@ const ENTRY_COLORS = {
 
 let currentUser = null;
 let currentUserTier = 1;
+let currentUserStatus = "pending";
 let entries = [];
 let history = [];
 let sessionMessages = [];
@@ -326,19 +430,32 @@ async function signOut() {
   const key = sessionKey();
   if (key) sessionStorage.removeItem(key);
   await sb.auth.signOut();
-  currentUser = null; currentUserTier = 1; history = []; sessionMessages = []; entries = [];
-  const app = document.getElementById("app-screen");
-  app.classList.add("hidden");
-  app.style.display = "none";
+  currentUser = null; currentUserTier = 1; currentUserStatus = "pending";
+  history = []; sessionMessages = []; entries = [];
+  document.getElementById("app-screen").classList.add("hidden");
+  document.getElementById("app-screen").style.display = "none";
+  document.getElementById("pending-screen").classList.add("hidden");
+  document.getElementById("suspended-screen").classList.add("hidden");
+  document.getElementById("upgrade-panel").classList.add("hidden");
   document.getElementById("auth-screen").classList.remove("hidden");
   document.getElementById("chat-area").innerHTML = `<div class="chat-empty" id="chat-empty"><div class="chat-empty-symbol">&#10022;</div><div class="chat-empty-main">What is present right now?</div><div class="chat-empty-sub">Say as much or as little as you want.</div></div>`;
 }
 
 async function showApp() {
   document.getElementById("auth-screen").classList.add("hidden");
+  await loadProfile();
+  if (currentUserStatus === "suspended") {
+    document.getElementById("suspended-screen").classList.remove("hidden");
+    return;
+  }
+  if (currentUserStatus !== "active") {
+    document.getElementById("pending-screen").classList.remove("hidden");
+    return;
+  }
   const app = document.getElementById("app-screen");
   app.classList.remove("hidden");
   app.style.display = "flex";
+  updateTierButton();
   document.getElementById("send-btn").disabled = true;
   await loadEntries();
   document.getElementById("send-btn").disabled = false;
@@ -434,7 +551,11 @@ Pattern instruction: When you detect a recurring trigger, emotional pattern, or 
 
 function getSystemPrompt(entries) {
   const patternContext = buildPatternContext(entries);
-  return SYSTEM_PROMPT + (patternContext ? "\n\n" + patternContext : "");
+  let tierLayer = "";
+  if (currentUserTier === 1) tierLayer = SYSTEM_PROMPT_TIER1;
+  else if (currentUserTier === 2) tierLayer = SYSTEM_PROMPT_TIER2;
+  else if (currentUserTier >= 3) tierLayer = SYSTEM_PROMPT_TIER3;
+  return SYSTEM_PROMPT + tierLayer + (patternContext ? "\n\n" + patternContext : "");
 }
 
 function parseLog(text) {
@@ -475,6 +596,23 @@ function loadSessionHistory() {
   } catch { history = []; sessionMessages = []; }
 }
 
+async function loadProfile() {
+  if (!currentUser) return;
+  try {
+    const { data, error } = await sb.from("profiles").select("tier, status").eq("user_id", currentUser.id).single();
+    if (!error && data) {
+      currentUserTier = data.tier ?? 1;
+      currentUserStatus = data.status ?? "pending";
+    } else {
+      currentUserTier = 1;
+      currentUserStatus = "pending";
+    }
+  } catch {
+    currentUserTier = 1;
+    currentUserStatus = "pending";
+  }
+}
+
 function stripLog(text) { return text.replace(/LOG_BEGIN[\s\S]*?LOG_END/g, "").trim(); }
 
 document.getElementById("msg-input").addEventListener("keydown", e => {
@@ -510,10 +648,11 @@ async function sendMessage() {
     sessionMessages.push({ role: "assistant", text: clean, log });
     saveSessionHistory();
     const isJournal = ["Red Journal","Black Journal","White Journal","Gold Journal"].includes(log?.entry_type);
-    const isAutoLog = log && !isJournal;
-    appendMessage("assistant", clean, log, isJournal && !!log);
+    const isAutoLog = log && !isJournal && currentUserTier >= 2;
+    const showBanner = !!log && (isJournal || !isAutoLog);
+    appendMessage("assistant", clean, log, showBanner);
     if (isAutoLog) { await persistEntry({ timestamp: new Date().toISOString(), userMsg: text, aiResponse: clean, log }); }
-    else if (isJournal && log) { pendingLog = { userMsg: text, aiResponse: clean, log }; showSaveBanner(log.entry_type); }
+    else if (log) { pendingLog = { userMsg: text, aiResponse: clean, log }; showSaveBanner(log.entry_type); }
   } catch (err) { removeTyping(typingId); setError(err.message); appendMessage("assistant", "Connection issue. Try sending again."); }
 
   setLoading(false);
@@ -562,6 +701,36 @@ function showSaveBanner(t) { const c = ENTRY_COLORS[t] || {}; document.getElemen
 function hideSaveBanner() { document.getElementById("save-banner").classList.add("hidden"); }
 async function confirmSave() { if (!pendingLog) return; await persistEntry({ timestamp: new Date().toISOString(), userMsg: pendingLog.userMsg, aiResponse: pendingLog.aiResponse, log: pendingLog.log }); pendingLog = null; hideSaveBanner(); }
 function dismissSave() { pendingLog = null; hideSaveBanner(); }
+
+function openUpgradePanel() {
+  [1, 2, 3].forEach(t => {
+    const card = document.getElementById("tier-card-" + t);
+    const badge = document.getElementById("tier-badge-" + t);
+    if (t === 3) {
+      card.classList.remove("active");
+      badge.textContent = "COMING SOON";
+      badge.className = "tier-card-badge soon";
+    } else if (t === currentUserTier) {
+      card.classList.add("active");
+      badge.textContent = "YOUR TIER";
+      badge.className = "tier-card-badge current";
+    } else {
+      card.classList.remove("active");
+      badge.textContent = "";
+      badge.className = "tier-card-badge";
+    }
+  });
+  document.getElementById("upgrade-panel").classList.remove("hidden");
+}
+
+function closeUpgradePanel() {
+  document.getElementById("upgrade-panel").classList.add("hidden");
+}
+
+function updateTierButton() {
+  const btn = document.getElementById("tier-btn");
+  if (btn) btn.textContent = "TIER " + currentUserTier;
+}
 
 function setFilter(filter, btn) {
   currentFilter = filter;
