@@ -764,7 +764,13 @@ function renderJournal() {
     dateEl.textContent = new Date(e.timestamp).toLocaleDateString("en-US", {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
     top.appendChild(typeEl); top.appendChild(dateEl); card.appendChild(top);
 
-    function field(label, val) { if (!val) return; const row = document.createElement("div"); row.className = "field-row"; row.innerHTML = "<div class='field-label'>" + label + "</div><div class='field-val'>" + val + "</div>"; card.appendChild(row); }
+    function field(label, val) {
+      if (!val) return;
+      const row = document.createElement("div"); row.className = "field-row";
+      const labelEl = document.createElement("div"); labelEl.className = "field-label"; labelEl.textContent = label;
+      const valEl = document.createElement("div"); valEl.className = "field-val"; valEl.textContent = val;
+      row.appendChild(labelEl); row.appendChild(valEl); card.appendChild(row);
+    }
 
     if (["Red Journal","Black Journal","White Journal","Gold Journal"].includes(t)) { field("TRIGGER", l.emotional_trigger); field("EXPRESSION", l.unfiltered_expression); }
     if (t === "Call My Shot") { field("COMMITMENT", l.commitment_type); field("ACTION PLAN", l.action_plan); field("DEADLINE", l.deadline); const chip = document.createElement("span"); chip.className = "status-chip"; chip.style.cssText = "background:#0f1f1a;color:#10b981;"; chip.textContent = "● Open"; card.appendChild(chip); }
