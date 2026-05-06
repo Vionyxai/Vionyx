@@ -156,16 +156,28 @@
     btn.textContent = "Submitting...";
     hideError();
 
-    const { error } = await sb.from("applications").insert({
-      user_id: currentUser.id,
-      email: currentUser.email,
-      name, age, gender,
-      q1, q2, q3, q4, q5
-    });
+    let insertError = null;
+    try {
+      const { error } = await sb.from("applications").insert({
+        user_id: currentUser.id,
+        email: currentUser.email,
+        name, age, gender,
+        q1, q2, q3, q4, q5
+      });
+      insertError = error;
+    } catch (e) {
+      insertError = { message: e.message || "Unexpected error. Try again." };
+    }
 
-    if (error) {
-      console.error("Application insert error:", error);
-      showError(error.message || "Something went wrong. Try again in a moment.");
+    if (insertError) {
+      // Already submitted from another device — treat as success
+      if (insertError.code === "23505") {
+        localStorage.setItem("vx_applied_" + currentUser.id, "true");
+        showConfirm();
+        return;
+      }
+      console.error("Application insert error:", insertError);
+      showError(insertError.message || "Something went wrong. Try again in a moment.");
       btn.disabled = false;
       btn.textContent = "SUBMIT APPLICATION";
       return;
