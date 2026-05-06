@@ -28,6 +28,7 @@
     .card-headline { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; letter-spacing: 0.06em; color: #fff; line-height: 1.2; }
     .card-subtext { font-size: 13px; color: var(--text2); line-height: 1.7; }
     .questions { display: flex; flex-direction: column; gap: 28px; }
+    .info-row { display: flex; gap: 16px; }
     .question-block { display: flex; flex-direction: column; gap: 10px; }
     .question-label { font-size: 11px; color: var(--text3); font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.1em; }
     .question-text { font-size: 13.5px; color: var(--text); line-height: 1.6; margin-bottom: 2px; }
@@ -58,6 +59,20 @@
     <div class="card-subtext">Five questions. No right answers. We&rsquo;re looking for signal, not polish.</div>
 
     <div class="questions">
+      <div class="info-row">
+        <div class="question-block" style="flex:2;">
+          <div class="question-label">Name</div>
+          <input class="question-input" id="name" type="text" placeholder="Full name" style="min-height:unset;resize:none;" />
+        </div>
+        <div class="question-block" style="flex:1;">
+          <div class="question-label">Age</div>
+          <input class="question-input" id="age" type="number" min="13" max="120" placeholder="Age" style="min-height:unset;resize:none;" />
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label">Ethnicity</div>
+        <input class="question-input" id="ethnicity" type="text" placeholder="How you identify" style="min-height:unset;resize:none;" />
+      </div>
       <div class="question-block">
         <div class="question-label">01</div>
         <div class="question-text">What&rsquo;s one area of your life where you keep getting the same result no matter what you try?</div>
@@ -122,14 +137,17 @@
   });
 
   async function submitApplication() {
+    const name = document.getElementById("name").value.trim();
+    const age = document.getElementById("age").value.trim();
+    const ethnicity = document.getElementById("ethnicity").value.trim();
     const q1 = document.getElementById("q1").value.trim();
     const q2 = document.getElementById("q2").value.trim();
     const q3 = document.getElementById("q3").value.trim();
     const q4 = document.getElementById("q4").value.trim();
     const q5 = document.getElementById("q5").value.trim();
 
-    if (!q1 || !q2 || !q3 || !q4 || !q5) {
-      showError("All five questions are required.");
+    if (!name || !age || !ethnicity || !q1 || !q2 || !q3 || !q4 || !q5) {
+      showError("All fields are required.");
       return;
     }
 
@@ -141,6 +159,7 @@
     const { error } = await sb.from("applications").insert({
       user_id: currentUser.id,
       email: currentUser.email,
+      name, age, ethnicity,
       q1, q2, q3, q4, q5
     });
 
