@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIONYX — Apply</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080809; --bg2: #0f0f12; --bg3: #141418;
+      --border: #1c1c24; --border2: #252530;
+      --text: #e2e2e6; --text2: #9090a0; --text3: #444450;
+      --accent: #7c3aed; --accent2: #9d5cf6; --accent-dim: #2d1a5c;
+    }
+    html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; font-size: 14px; }
+    .page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 48px 24px 64px; }
+    .topbar { width: 100%; max-width: 680px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 48px; }
+    .back-link { font-size: 12px; color: var(--text3); text-decoration: none; font-family: 'Syne', sans-serif; letter-spacing: 0.06em; transition: color 0.15s; }
+    .back-link:hover { color: var(--text2); }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.2em; color: #fff; }
+    .signout-link { font-size: 12px; color: var(--text3); background: none; border: none; cursor: pointer; font-family: 'Syne', sans-serif; letter-spacing: 0.06em; transition: color 0.15s; }
+    .signout-link:hover { color: var(--text2); }
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 48px 44px; width: 100%; max-width: 680px; display: flex; flex-direction: column; gap: 32px; }
+    .card-eyebrow { font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: 0.18em; text-transform: uppercase; }
+    .card-headline { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; letter-spacing: 0.06em; color: #fff; line-height: 1.2; }
+    .card-subtext { font-size: 13px; color: var(--text2); line-height: 1.7; }
+    .questions { display: flex; flex-direction: column; gap: 28px; }
+    .question-block { display: flex; flex-direction: column; gap: 10px; }
+    .question-label { font-size: 11px; color: var(--text3); font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.1em; }
+    .question-text { font-size: 13.5px; color: var(--text); line-height: 1.6; margin-bottom: 2px; }
+    .question-input { background: var(--bg); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; resize: vertical; min-height: 80px; line-height: 1.55; transition: border-color 0.2s; width: 100%; }
+    .question-input:focus { border-color: var(--accent); }
+    .submit-btn { padding: 14px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; font-size: 12px; font-family: 'Syne', sans-serif; background: var(--accent); color: #fff; letter-spacing: 0.1em; transition: background 0.2s; }
+    .submit-btn:hover { background: var(--accent2); }
+    .submit-btn:disabled { opacity: 0.5; cursor: default; }
+    .error-bar { background: #2d0f0f; border: 1px solid #5c1f1f; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #ef4444; }
+    .confirm-symbol { font-size: 22px; color: var(--text3); }
+    .confirm-headline { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; letter-spacing: 0.06em; color: #fff; }
+    .confirm-body { font-size: 13px; color: var(--text2); line-height: 1.7; }
+    .footer-note { font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: 0.08em; text-align: center; margin-top: 32px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <a class="back-link" href="https://vionyx-xi.vercel.app">&#8592; Return to session</a>
+    <div class="logo">VIONYX</div>
+    <button class="signout-link" id="signout-btn">Sign out</button>
+  </div>
+
+  <div class="card" id="form-view">
+    <div class="card-eyebrow">Access Application</div>
+    <div class="card-headline">Tell us about you.</div>
+    <div class="card-subtext">Five questions. No right answers. We&rsquo;re looking for signal, not polish.</div>
+
+    <div class="questions">
+      <div class="question-block">
+        <div class="question-label">01</div>
+        <div class="question-text">What&rsquo;s one area of your life where you keep getting the same result no matter what you try?</div>
+        <textarea class="question-input" id="q1" rows="3" placeholder="Be specific."></textarea>
+      </div>
+      <div class="question-block">
+        <div class="question-label">02</div>
+        <div class="question-text">When you&rsquo;ve tried to build consistency before, what was the first thing that broke down?</div>
+        <textarea class="question-input" id="q2" rows="3" placeholder="What happened?"></textarea>
+      </div>
+      <div class="question-block">
+        <div class="question-label">03</div>
+        <div class="question-text">How do you typically respond when pressure builds and the plan stops working?</div>
+        <textarea class="question-input" id="q3" rows="3" placeholder="Honest answer."></textarea>
+      </div>
+      <div class="question-block">
+        <div class="question-label">04</div>
+        <div class="question-text">What&rsquo;s something about the way you think or operate that most people in your life don&rsquo;t fully get?</div>
+        <textarea class="question-input" id="q4" rows="3" placeholder="Take your time with this one."></textarea>
+      </div>
+      <div class="question-block">
+        <div class="question-label">05</div>
+        <div class="question-text">What made you stop and apply today instead of keeping it moving?</div>
+        <textarea class="question-input" id="q5" rows="3" placeholder="What shifted?"></textarea>
+      </div>
+    </div>
+
+    <div class="error-bar hidden" id="error-bar"></div>
+    <button class="submit-btn" id="submit-btn" onclick="submitApplication()">SUBMIT APPLICATION</button>
+  </div>
+
+  <div class="card hidden" id="confirm-view">
+    <div class="confirm-symbol">&#10022;</div>
+    <div class="confirm-headline">Application received.</div>
+    <div class="confirm-body">We&rsquo;ll reach out when access is granted. No action needed on your end. Keep an eye on the email you signed up with.</div>
+    <a class="back-link" href="https://vionyx-xi.vercel.app" style="font-size:13px;">&#8592; Return to session</a>
+  </div>
+
+  <div class="footer-note">VIONYX.AI</div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://msyyhgeuqnhksyyqhvsr.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_XB2lbu1MNRx_TnnetQnSGQ_OwJjXmPR";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const APP_URL = "https://vionyx-xi.vercel.app";
+  let currentUser = null;
+
+  window.addEventListener("load", async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = APP_URL; return; }
+    currentUser = session.user;
+    if (localStorage.getItem("vx_applied_" + currentUser.id)) {
+      showConfirm();
+    }
+  });
+
+  document.getElementById("signout-btn").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    window.location.href = APP_URL;
+  });
+
+  async function submitApplication() {
+    const q1 = document.getElementById("q1").value.trim();
+    const q2 = document.getElementById("q2").value.trim();
+    const q3 = document.getElementById("q3").value.trim();
+    const q4 = document.getElementById("q4").value.trim();
+    const q5 = document.getElementById("q5").value.trim();
+
+    if (!q1 || !q2 || !q3 || !q4 || !q5) {
+      showError("All five questions are required.");
+      return;
+    }
+
+    const btn = document.getElementById("submit-btn");
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
+    hideError();
+
+    const { error } = await sb.from("applications").insert({
+      user_id: currentUser.id,
+      email: currentUser.email,
+      q1, q2, q3, q4, q5
+    });
+
+    if (error) {
+      showError("Something went wrong. Try again in a moment.");
+      btn.disabled = false;
+      btn.textContent = "SUBMIT APPLICATION";
+      return;
+    }
+
+    localStorage.setItem("vx_applied_" + currentUser.id, "true");
+    showConfirm();
+  }
+
+  function showConfirm() {
+    document.getElementById("form-view").classList.add("hidden");
+    document.getElementById("confirm-view").classList.remove("hidden");
+  }
+
+  function showError(msg) {
+    const bar = document.getElementById("error-bar");
+    bar.textContent = msg;
+    bar.classList.remove("hidden");
+  }
+
+  function hideError() {
+    document.getElementById("error-bar").classList.add("hidden");
+  }
+</script>
+</body>
+</html>

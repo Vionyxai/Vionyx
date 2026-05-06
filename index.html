@@ -207,7 +207,9 @@
       <div class="status-eyebrow">Access Status</div>
       <div class="status-title">Application Under Review</div>
       <div class="status-body">Your account is pending approval. Once access is granted you will be able to begin your first session.</div>
-      <button class="status-btn" onclick="openUpgradePanel()">See what you&rsquo;re waiting for</button>
+      <button class="status-btn" id="apply-btn" onclick="window.location.href='/apply/'">Submit Application</button>
+      <button class="status-btn" id="applied-btn" hidden disabled style="opacity:0.4;cursor:default;">Application Submitted</button>
+      <button class="status-link-btn" onclick="openUpgradePanel()">See what you&rsquo;re waiting for</button>
       <button class="status-link-btn" onclick="signOut()">Sign out</button>
     </div>
   </div>
@@ -450,6 +452,7 @@ async function showApp() {
   }
   if (currentUserStatus !== "active") {
     document.getElementById("pending-screen").classList.remove("hidden");
+    checkApplicationState();
     return;
   }
   const app = document.getElementById("app-screen");
@@ -725,6 +728,13 @@ function openUpgradePanel() {
 
 function closeUpgradePanel() {
   document.getElementById("upgrade-panel").classList.add("hidden");
+}
+
+function checkApplicationState() {
+  if (!currentUser) return;
+  const applied = localStorage.getItem("vx_applied_" + currentUser.id);
+  document.getElementById("apply-btn").hidden = !!applied;
+  document.getElementById("applied-btn").hidden = !applied;
 }
 
 function updateTierButton() {
