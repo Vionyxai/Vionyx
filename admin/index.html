@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIONYX Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080809; --bg2: #0f0f12; --bg3: #141418;
+      --border: #1c1c24; --border2: #252530;
+      --text: #e2e2e6; --text2: #9090a0; --text3: #444450;
+      --accent: #7c3aed; --accent2: #9d5cf6; --accent-dim: #2d1a5c;
+    }
+    html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; font-size: 14px; }
+    .hidden { display: none !important; }
+
+    /* Loading */
+    #loading-screen { height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .loading-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+    /* Not admin */
+    #not-admin-screen { height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .not-admin-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 48px 40px; max-width: 400px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+    .not-admin-symbol { font-size: 20px; color: var(--text3); }
+    .not-admin-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; color: #fff; letter-spacing: 0.06em; }
+    .not-admin-body { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+    /* Shared button */
+    .signout-link { font-size: 11px; color: var(--text3); background: transparent; border: 1px solid var(--border2); border-radius: 20px; padding: 5px 14px; cursor: pointer; font-family: 'Syne', sans-serif; letter-spacing: 0.06em; transition: all 0.15s; }
+    .signout-link:hover { color: var(--text2); border-color: var(--border); }
+
+    /* Admin screen */
+    #admin-screen { min-height: 100vh; }
+    .admin-topbar { display: flex; align-items: center; justify-content: space-between; max-width: 800px; margin: 0 auto; width: 100%; padding: 28px 24px 0; }
+    .admin-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.2em; color: #fff; }
+    .admin-badge { font-family: 'Syne', sans-serif; font-size: 9px; color: var(--text3); background: var(--bg3); border: 1px solid var(--border2); border-radius: 20px; padding: 3px 10px; letter-spacing: 0.16em; }
+    .admin-body { max-width: 800px; margin: 0 auto; width: 100%; padding: 48px 24px 80px; display: flex; flex-direction: column; gap: 60px; }
+
+    /* Section */
+    .admin-section { display: flex; flex-direction: column; gap: 20px; }
+    .section-header { display: flex; align-items: baseline; justify-content: space-between; }
+    .section-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: #fff; letter-spacing: 0.08em; }
+    .section-count { font-family: 'Syne', sans-serif; font-size: 11px; color: var(--text3); letter-spacing: 0.1em; }
+    .empty-state { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 0; }
+    .empty-symbol { font-size: 20px; color: var(--text3); }
+    .empty-text { font-size: 13px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: 0.06em; }
+
+    /* Application card */
+    .card-list { display: flex; flex-direction: column; gap: 16px; }
+    .app-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 28px 32px; display: flex; flex-direction: column; }
+    .app-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 20px; }
+    .app-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; color: #fff; letter-spacing: 0.08em; }
+    .app-meta { font-size: 12px; color: var(--text2); margin-top: 5px; }
+    .app-date { font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; white-space: nowrap; flex-shrink: 0; }
+    .q-block { padding: 16px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+    .q-header { display: flex; align-items: center; justify-content: space-between; }
+    .q-number { font-family: 'Syne', sans-serif; font-size: 10px; color: var(--text3); letter-spacing: 0.14em; font-weight: 700; }
+    .q-rating { font-family: 'Syne', sans-serif; font-size: 12px; color: var(--accent2); font-weight: 700; }
+    .q-text { font-size: 12px; color: var(--text2); line-height: 1.55; }
+    .q-answer { font-size: 13px; color: var(--text); line-height: 1.65; }
+    .card-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 20px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .card-error { font-size: 11px; color: #ef4444; background: #2d0f0f; border: 1px solid #5c1f1f; border-radius: 8px; padding: 8px 12px; margin-top: 8px; }
+    .reject-btn { font-size: 11px; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.1em; background: transparent; border: 1px solid var(--border2); border-radius: 20px; padding: 8px 20px; color: var(--text3); cursor: pointer; transition: all 0.15s; }
+    .reject-btn:hover:not(:disabled) { border-color: #5c1f1f; color: #ef4444; }
+    .reject-btn:disabled { opacity: 0.4; cursor: default; }
+    .accept-btn { font-size: 11px; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.1em; background: var(--accent); border: none; border-radius: 20px; padding: 8px 20px; color: #fff; cursor: pointer; transition: background 0.15s; }
+    .accept-btn:hover:not(:disabled) { background: var(--accent2); }
+    .accept-btn:disabled { opacity: 0.4; cursor: default; }
+
+    /* Members */
+    .member-list { display: flex; flex-direction: column; gap: 10px; }
+    .member-row { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 18px 24px; display: flex; flex-direction: column; gap: 14px; }
+    .member-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .member-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; color: #fff; }
+    .member-email { font-size: 12px; color: var(--text2); margin-top: 3px; }
+    .member-admin-badge { display: inline-block; margin-top: 6px; font-family: 'Syne', sans-serif; font-size: 9px; color: var(--text3); background: var(--bg3); border: 1px solid var(--border2); border-radius: 20px; padding: 2px 8px; letter-spacing: 0.14em; }
+    .member-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .tier-pills { display: flex; gap: 6px; }
+    .tier-pill { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border2); color: var(--text3); cursor: pointer; background: transparent; transition: all 0.15s; }
+    .tier-pill.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent2); }
+    .tier-pill:not(.active):hover:not(:disabled) { border-color: var(--border); color: var(--text2); }
+    .tier-pill:disabled { opacity: 0.35; cursor: default; }
+    .suspend-btn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; background: transparent; border: 1px solid #5c1f1f; border-radius: 20px; padding: 5px 14px; color: #ef4444; cursor: pointer; transition: background 0.15s; }
+    .suspend-btn:hover { background: #2d0f0f; }
+
+    @media (max-width: 520px) {
+      .admin-topbar { padding: 20px 16px 0; }
+      .app-card { padding: 20px; }
+      .card-actions { flex-wrap: wrap; }
+      .accept-btn, .reject-btn { flex: 1; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loading-dot"></div>
+</div>
+
+<div id="not-admin-screen" class="hidden">
+  <div class="not-admin-card">
+    <div class="not-admin-symbol">✦</div>
+    <div class="not-admin-title">Not available.</div>
+    <div class="not-admin-body">This page isn't available for your account.</div>
+    <button class="signout-link" onclick="signOut()">Sign out</button>
+  </div>
+</div>
+
+<div id="admin-screen" class="hidden">
+  <div class="admin-topbar">
+    <div class="admin-logo">VIONYX</div>
+    <div class="admin-badge">ADMIN</div>
+    <button class="signout-link" id="signout-btn">Sign out</button>
+  </div>
+
+  <div class="admin-body">
+    <section class="admin-section">
+      <div class="section-header">
+        <div class="section-title">Applications</div>
+        <div class="section-count" id="app-count"></div>
+      </div>
+      <div class="card-list" id="applications-list"></div>
+    </section>
+
+    <section class="admin-section">
+      <div class="section-header">
+        <div class="section-title">Members</div>
+        <div class="section-count" id="member-count"></div>
+      </div>
+      <div class="member-list" id="members-list"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://msyyhgeuqnhksyyqhvsr.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_XB2lbu1MNRx_TnnetQnSGQ_OwJjXmPR";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const QUESTIONS = [
+    "What's one area of your life where you keep getting the same result no matter what you try?",
+    "When you've tried to build consistency before, what was the first thing that broke down?",
+    "How do you typically respond when pressure builds and the plan stops working?",
+    "What's something about the way you think or operate that most people in your life don't fully get?",
+    "What made you stop and apply today instead of keeping it moving?"
+  ];
+
+  let currentUser = null;
+
+  function show(id) { document.getElementById(id).classList.remove('hidden'); }
+  function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+  async function signOut() {
+    await sb.auth.signOut();
+    window.location.href = '/';
+  }
+
+  document.getElementById('signout-btn').addEventListener('click', signOut);
+
+  window.addEventListener('load', async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { hide('loading-screen'); show('not-admin-screen'); return; }
+    currentUser = session.user;
+
+    const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', currentUser.id).single();
+    if (!profile?.is_admin) { hide('loading-screen'); show('not-admin-screen'); return; }
+
+    await Promise.all([loadApplications(), loadMembers()]);
+    hide('loading-screen');
+    show('admin-screen');
+  });
+
+  // ── Applications ──────────────────────────────────────────────
+
+  async function loadApplications() {
+    const { data: allApps, error } = await sb
+      .from('applications')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error || !allApps) return;
+
+    const userIds = allApps.map(a => a.user_id).filter(Boolean);
+    const { data: profileRows } = userIds.length
+      ? await sb.from('profiles').select('id, status').in('id', userIds)
+      : { data: [] };
+
+    const profileMap = {};
+    (profileRows || []).forEach(p => { profileMap[p.id] = p.status; });
+
+    const pending = allApps.filter(a => !profileMap[a.user_id] || profileMap[a.user_id] === 'pending');
+
+    const countEl = document.getElementById('app-count');
+    countEl.textContent = pending.length + ' pending';
+
+    const list = document.getElementById('applications-list');
+    list.innerHTML = '';
+
+    if (pending.length === 0) { renderEmpty(list, 'No applications to review yet.'); return; }
+    pending.forEach(app => list.appendChild(buildAppCard(app)));
+  }
+
+  function buildAppCard(app) {
+    const card = document.createElement('div');
+    card.className = 'app-card';
+    card.id = 'app-' + app.user_id;
+
+    // Header
+    const header = document.createElement('div'); header.className = 'app-card-header';
+    const left = document.createElement('div');
+    const nameEl = document.createElement('div'); nameEl.className = 'app-name'; nameEl.textContent = app.name || 'No name';
+    const meta = document.createElement('div'); meta.className = 'app-meta';
+    meta.textContent = [app.age, app.gender, app.email].filter(Boolean).join(' · ');
+    left.appendChild(nameEl); left.appendChild(meta);
+    const dateEl = document.createElement('div'); dateEl.className = 'app-date';
+    dateEl.textContent = app.created_at
+      ? new Date(app.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : '';
+    header.appendChild(left); header.appendChild(dateEl);
+    card.appendChild(header);
+
+    // Questions
+    ['q1','q2','q3','q4','q5'].forEach((key, i) => {
+      const ratingVal = app['q' + (i + 1) + '_rating'];
+      const answerText = app[key];
+      if (!answerText && ratingVal == null) return;
+
+      const block = document.createElement('div'); block.className = 'q-block';
+      const qHeader = document.createElement('div'); qHeader.className = 'q-header';
+      const num = document.createElement('div'); num.className = 'q-number'; num.textContent = String(i + 1).padStart(2, '0');
+      qHeader.appendChild(num);
+      if (ratingVal != null) {
+        const rating = document.createElement('div'); rating.className = 'q-rating'; rating.textContent = ratingVal + '/10';
+        qHeader.appendChild(rating);
+      }
+      block.appendChild(qHeader);
+      const qText = document.createElement('div'); qText.className = 'q-text'; qText.textContent = QUESTIONS[i]; block.appendChild(qText);
+      if (answerText) { const ans = document.createElement('div'); ans.className = 'q-answer'; ans.textContent = answerText; block.appendChild(ans); }
+      card.appendChild(block);
+    });
+
+    // Actions
+    const actions = document.createElement('div'); actions.className = 'card-actions';
+    const errEl = document.createElement('div'); errEl.className = 'card-error hidden';
+    const rejectBtn = document.createElement('button'); rejectBtn.className = 'reject-btn'; rejectBtn.textContent = 'REJECT';
+    const acceptBtn = document.createElement('button'); acceptBtn.className = 'accept-btn'; acceptBtn.textContent = 'ACCEPT';
+    rejectBtn.onclick = () => handleDecision(app.user_id, 'rejected', acceptBtn, rejectBtn, errEl);
+    acceptBtn.onclick = () => handleDecision(app.user_id, 'accepted', acceptBtn, rejectBtn, errEl);
+    actions.appendChild(rejectBtn); actions.appendChild(acceptBtn);
+    card.appendChild(actions);
+    card.appendChild(errEl);
+    return card;
+  }
+
+  async function handleDecision(userId, decision, acceptBtn, rejectBtn, errEl) {
+    acceptBtn.disabled = true; rejectBtn.disabled = true;
+    acceptBtn.textContent = decision === 'accepted' ? '...' : 'ACCEPT';
+    rejectBtn.textContent = decision === 'rejected' ? '...' : 'REJECT';
+    errEl.classList.add('hidden');
+
+    const newStatus = decision === 'accepted' ? 'active' : 'suspended';
+    const payload = decision === 'accepted' ? { status: 'active', tier: 1 } : { status: 'suspended' };
+
+    const { data, error } = await sb.from('profiles').update(payload).eq('id', userId).select();
+
+    if (error) {
+      errEl.textContent = 'Something went wrong. Try again.';
+      errEl.classList.remove('hidden');
+      acceptBtn.disabled = false; rejectBtn.disabled = false;
+      acceptBtn.textContent = 'ACCEPT'; rejectBtn.textContent = 'REJECT';
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      const { error: insertErr } = await sb.from('profiles')
+        .insert({ id: userId, status: newStatus, tier: 1, is_admin: false });
+      if (insertErr) {
+        errEl.textContent = 'Something went wrong. Try again.';
+        errEl.classList.remove('hidden');
+        acceptBtn.disabled = false; rejectBtn.disabled = false;
+        acceptBtn.textContent = 'ACCEPT'; rejectBtn.textContent = 'REJECT';
+        return;
+      }
+    }
+
+    const card = document.getElementById('app-' + userId);
+    if (card) card.remove();
+
+    const remaining = document.querySelectorAll('.app-card').length;
+    document.getElementById('app-count').textContent = remaining + ' pending';
+    if (remaining === 0) renderEmpty(document.getElementById('applications-list'), 'No applications to review yet.');
+    if (decision === 'accepted') await loadMembers();
+  }
+
+  // ── Members ───────────────────────────────────────────────────
+
+  async function loadMembers() {
+    const [{ data: members }, { data: apps }] = await Promise.all([
+      sb.from('profiles').select('id, tier, status, is_admin').eq('status', 'active'),
+      sb.from('applications').select('user_id, email, name')
+    ]);
+
+    const appMap = {};
+    (apps || []).forEach(a => { appMap[a.user_id] = { email: a.email, name: a.name }; });
+
+    const list = document.getElementById('members-list');
+    list.innerHTML = '';
+    const active = members || [];
+    document.getElementById('member-count').textContent = active.length + ' active';
+
+    if (active.length === 0) { renderEmpty(list, 'No active members yet.'); return; }
+    active.forEach(m => list.appendChild(buildMemberRow(m, appMap[m.id])));
+  }
+
+  function buildMemberRow(member, appData) {
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    row.id = 'member-' + member.id;
+
+    const top = document.createElement('div'); top.className = 'member-top';
+    const info = document.createElement('div');
+    const nameEl = document.createElement('div'); nameEl.className = 'member-name'; nameEl.textContent = appData?.name || 'No name on file';
+    const emailEl = document.createElement('div'); emailEl.className = 'member-email'; emailEl.textContent = appData?.email || 'No email on file';
+    info.appendChild(nameEl); info.appendChild(emailEl);
+    if (member.is_admin) {
+      const badge = document.createElement('div'); badge.className = 'member-admin-badge'; badge.textContent = 'ADMIN';
+      info.appendChild(badge);
+    }
+    top.appendChild(info);
+    row.appendChild(top);
+
+    const bottom = document.createElement('div'); bottom.className = 'member-bottom';
+    const pills = document.createElement('div'); pills.className = 'tier-pills';
+    [1, 2, 3].forEach(t => {
+      const pill = document.createElement('button');
+      pill.className = 'tier-pill' + (member.tier === t ? ' active' : '');
+      pill.textContent = 'TIER ' + t;
+      pill.onclick = () => updateTier(member.id, t, row);
+      pills.appendChild(pill);
+    });
+    bottom.appendChild(pills);
+
+    if (!member.is_admin) {
+      const suspendBtn = document.createElement('button'); suspendBtn.className = 'suspend-btn'; suspendBtn.textContent = 'SUSPEND';
+      suspendBtn.onclick = () => suspendMember(member.id);
+      bottom.appendChild(suspendBtn);
+    }
+
+    row.appendChild(bottom);
+    return row;
+  }
+
+  async function updateTier(userId, tier, row) {
+    const pills = row.querySelectorAll('.tier-pill');
+    pills.forEach(p => { p.disabled = true; });
+    const { error } = await sb.from('profiles').update({ tier }).eq('id', userId);
+    pills.forEach(p => { p.disabled = false; });
+    if (error) return;
+    pills.forEach((p, i) => p.classList.toggle('active', i + 1 === tier));
+  }
+
+  async function suspendMember(userId) {
+    if (!confirm('Suspend this member? They lose access right away.')) return;
+    const { error } = await sb.from('profiles').update({ status: 'suspended' }).eq('id', userId);
+    if (error) return;
+    const row = document.getElementById('member-' + userId);
+    if (row) row.remove();
+    const remaining = document.querySelectorAll('.member-row').length;
+    document.getElementById('member-count').textContent = remaining + ' active';
+    if (remaining === 0) renderEmpty(document.getElementById('members-list'), 'No active members yet.');
+  }
+
+  function renderEmpty(container, msg) {
+    container.innerHTML = '';
+    const wrap = document.createElement('div'); wrap.className = 'empty-state';
+    const sym = document.createElement('div'); sym.className = 'empty-symbol'; sym.textContent = '✦';
+    const txt = document.createElement('div'); txt.className = 'empty-text'; txt.textContent = msg;
+    wrap.appendChild(sym); wrap.appendChild(txt); container.appendChild(wrap);
+  }
+</script>
+</body>
+</html>
