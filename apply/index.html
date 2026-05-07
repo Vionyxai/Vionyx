@@ -64,6 +64,7 @@
     <div class="card-eyebrow">Access Application</div>
     <div class="card-headline">Tell us about you.</div>
     <div class="card-subtext">Five questions. No right answers. We&rsquo;re looking for signal, not polish.</div>
+    <div class="card-subtext" style="font-size:12px; color: var(--text3);">Each question has a written field and a 1&ndash;10 scale. Either one counts &mdash; both give us more to work with.</div>
 
     <div class="questions">
       <div class="info-row">
@@ -191,8 +192,8 @@
     const q4_rating = parseInt(document.getElementById("q4_rating").value);
     const q5_rating = parseInt(document.getElementById("q5_rating").value);
 
-    if (!name || !age || !gender || !q1 || !q2 || !q3 || !q4 || !q5) {
-      showError("All fields are required.");
+    if (!name || !age || !gender) {
+      showError("Name, age, and gender are required.");
       return;
     }
     if (parseInt(age) < 13 || parseInt(age) > 120) {
