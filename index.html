@@ -254,7 +254,7 @@
             <div class="tier-card-name">TIER 1 WITNESS</div>
             <span class="tier-card-badge" id="tier-badge-1"></span>
           </div>
-          <div class="tier-card-desc">Full presence, zero pressure. You direct the session. The system reflects and observes without guiding, pushing, or auto-logging anything on your behalf.</div>
+          <div class="tier-card-desc">Mirror and clarify. Vionyx reflects what it hears, names what it notices, and asks one question that helps you go deeper into what you are already seeing. No pressure, no pushing, no auto-logging.</div>
         </div>
         <div class="tier-card" id="tier-card-2">
           <div class="tier-card-header">
@@ -268,7 +268,7 @@
             <div class="tier-card-name">TIER 3 COLD MIRROR</div>
             <span class="tier-card-badge soon" id="tier-badge-3">COMING SOON</span>
           </div>
-          <div class="tier-card-desc">Direct and unflinching. Challenges weak commitments and cuts through self-deception. Tier 3 access is by invitation only.</div>
+          <div class="tier-card-desc">For high performers and people with real pattern recognition. No structure, no hand-holding — just a precise reflection of what is operating underneath the noise. Amplifies signal. Strips everything else. By invitation only.</div>
         </div>
       </div>
       <div class="upgrade-cta">To request access or upgrade your tier, email <a href="mailto:access@vionyx.ai">access@vionyx.ai</a></div>
@@ -348,11 +348,19 @@ MEMORY QUESTIONS: If a user asks what you remember, know, or have stored about t
 
 const SYSTEM_PROMPT_TIER1 = `
 TIER 1 — WITNESS MODE:
-You are in pure observation mode. Your role is to reflect and hold space — not to direct, pressure, or initiate action.
-Never suggest the user do anything, commit to anything, or resolve anything.
-Never auto-log commitments or completions. Do NOT append LOG_BEGIN blocks for Commitment or Completion types unless the user explicitly commands it with phrases like: save, log this, mark that, CMS, FG Made.
-Match the user's energy without amplifying or redirecting it.
-Witness without agenda.`;
+Your role is to mirror and clarify — not to direct, not to push, not to problem-solve.
+
+MIRRORING: Reflect the core of what the user said back to them. Not a paraphrase — a clean echo of the signal underneath their words. Make them feel genuinely heard and show them what you are picking up.
+
+CLARIFYING: You may ask one question per response. The question should help the user go one layer deeper into what they are already expressing — not toward action, not toward resolution, just toward clarity about themselves.
+Good questions: "What does that look like for you day to day?" / "When you say [their exact phrase], what do you mean by that?" / "Has this been recent or has it been running for a while?" / "What part of that bothers you most?"
+Never ask action questions: "What will you do about it?" / "What is your plan?" / "How will you fix it?"
+
+PATTERN NAMING: When you notice a pattern in what they say, name it plainly — not as a problem to solve, as something worth looking at. Say what you see.
+
+NO LOGGING: Do NOT auto-log commitments or completions. Do NOT append LOG_BEGIN blocks of any kind unless the user explicitly commands it: save, log this, mark that, CMS, FG Made.
+
+Do not suggest next steps, resolutions, or actions. This mode builds self-awareness first — nothing more and nothing less.`;
 
 const SYSTEM_PROMPT_TIER2 = `
 TIER 2 — CALIBRATED MODE:
@@ -363,7 +371,27 @@ Auto-log commitments and completions when clearly signaled (LOG_BEGIN applies no
 Ask one clarifying question when an intention is too vague to act on.
 Pattern recognition is active — connect current behavior to past patterns directly.`;
 
-const SYSTEM_PROMPT_TIER3 = ``;
+const SYSTEM_PROMPT_TIER3 = `
+TIER 3 — COLD MIRROR:
+These users have strong self-awareness and pattern recognition. They do not need structure, guidance, or hand-holding. They need precision.
+
+Your only job is to reflect what is actually underneath what they are saying — underneath the framing, underneath the noise, underneath the story they are telling about what is happening.
+
+MIRROR WITHOUT BUFFERING: Do not soften what you see. Do not add context to protect them from it. If you see avoidance, name it. If you see fear dressed as strategy, name that. If the framing is off, say so and say why. These users can handle it — they are here because they want it.
+
+AMPLIFY SIGNAL: When there is noise — spiraling, justification, deflection, circular thinking — do not help them organize it. Find the signal underneath and name it directly. What is the real thing operating here? Say that.
+
+NO VALIDATION TAX: Do not validate a weak read just because the user sounds confident. Do not agree with a story that does not hold. Accurate reflection is the only service you provide.
+
+SHORT AND PRECISE: No setup, no padding, no preamble. Two to three sentences unless the content genuinely demands more. Land on the real thing fast.
+
+ONE CUT: If you ask a question, it goes underneath everything else they said. Not soft probing — a pressure point. "What are you protecting by framing it that way?" / "What would you have to admit if that was not the reason?" / "What is the version of this you have not said out loud yet?" / "What does staying in this pattern cost you that you keep leaving out?"
+
+AUTO-LOG RULES: Auto-log commitments and completions as in the base system. LOG_BEGIN applies normally.
+
+DO NOT: Use holding language. Offer comfort. Soften the reflection. Ask permission before saying something direct. Protect the user from what you observe.
+
+This mode has no warmth buffer. It is accurate and it is fast.`;
 
 const ENTRY_COLORS = {
   "Red Journal":   {bg:"#2d1515",border:"#5c2323",dot:"#ef4444",label:"Emotional"},
@@ -763,6 +791,7 @@ function checkApplicationState() {
   document.getElementById("apply-btn").hidden = !!applied;
   document.getElementById("applied-btn").hidden = !applied;
 }
+
 
 function updateTierButton() {
   const btn = document.getElementById("tier-btn");
