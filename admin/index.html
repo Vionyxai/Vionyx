@@ -87,6 +87,13 @@
     .tier-pill:disabled { opacity: 0.35; cursor: default; }
     .suspend-btn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; background: transparent; border: 1px solid #5c1f1f; border-radius: 20px; padding: 5px 14px; color: #ef4444; cursor: pointer; transition: background 0.15s; }
     .suspend-btn:hover { background: #2d0f0f; }
+    .reinstate-btn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; background: transparent; border: 1px solid var(--border2); border-radius: 20px; padding: 5px 14px; color: var(--text3); cursor: pointer; transition: all 0.15s; }
+    .reinstate-btn:hover { border-color: var(--accent); color: var(--accent2); }
+    .admin-toggle-btn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; background: transparent; border: 1px solid var(--border2); border-radius: 20px; padding: 5px 14px; color: var(--text3); cursor: pointer; transition: all 0.15s; }
+    .admin-toggle-btn:hover:not(:disabled) { border-color: var(--border); color: var(--text2); }
+    .admin-toggle-btn.is-admin { border-color: var(--accent-dim); color: var(--accent2); }
+    .admin-toggle-btn:disabled { opacity: 0.35; cursor: default; }
+    .member-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 
     @media (max-width: 520px) {
       .admin-topbar { padding: 20px 16px 0; }
@@ -134,6 +141,14 @@
       </div>
       <div class="member-list" id="members-list"></div>
     </section>
+
+    <section class="admin-section">
+      <div class="section-header">
+        <div class="section-title">Suspended</div>
+        <div class="section-count" id="suspended-count"></div>
+      </div>
+      <div class="member-list" id="suspended-list"></div>
+    </section>
   </div>
 </div>
 
@@ -170,7 +185,7 @@
     const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', currentUser.id).single();
     if (!profile?.is_admin) { hide('loading-screen'); show('not-admin-screen'); return; }
 
-    await Promise.all([loadApplications(), loadMembers()]);
+    await Promise.all([loadApplications(), loadMembers(), loadSuspended()]);
     hide('loading-screen');
     show('admin-screen');
   });
@@ -294,7 +309,8 @@
     const remaining = document.querySelectorAll('.app-card').length;
     document.getElementById('app-count').textContent = remaining + ' pending';
     if (remaining === 0) renderEmpty(document.getElementById('applications-list'), 'No applications to review yet.');
-    if (decision === 'accepted') await loadMembers();
+    if (decision === 'accepted') await Promise.all([loadMembers(), loadSuspended()]);
+  if (decision === 'rejected') await loadSuspended();
   }
 
   // ── Members ───────────────────────────────────────────────────
@@ -345,12 +361,22 @@
     });
     bottom.appendChild(pills);
 
-    if (!member.is_admin) {
+    const actions = document.createElement('div'); actions.className = 'member-actions';
+
+    const isSelf = member.id === currentUser.id;
+    if (!isSelf) {
+      const adminBtn = document.createElement('button');
+      adminBtn.className = 'admin-toggle-btn' + (member.is_admin ? ' is-admin' : '');
+      adminBtn.textContent = member.is_admin ? 'ADMIN' : 'MAKE ADMIN';
+      adminBtn.onclick = () => toggleAdmin(member.id, member.is_admin, adminBtn);
+      actions.appendChild(adminBtn);
+
       const suspendBtn = document.createElement('button'); suspendBtn.className = 'suspend-btn'; suspendBtn.textContent = 'SUSPEND';
       suspendBtn.onclick = () => suspendMember(member.id);
-      bottom.appendChild(suspendBtn);
+      actions.appendChild(suspendBtn);
     }
 
+    bottom.appendChild(actions);
     row.appendChild(bottom);
     return row;
   }
@@ -364,15 +390,89 @@
     pills.forEach((p, i) => p.classList.toggle('active', i + 1 === tier));
   }
 
+  async function toggleAdmin(userId, currentlyAdmin, btn) {
+    btn.disabled = true;
+    const newVal = !currentlyAdmin;
+    const { error } = await sb.from('profiles').update({ is_admin: newVal }).eq('id', userId);
+    btn.disabled = false;
+    if (error) return;
+    btn.classList.toggle('is-admin', newVal);
+    btn.textContent = newVal ? 'ADMIN' : 'MAKE ADMIN';
+    const row = document.getElementById('member-' + userId);
+    const badge = row?.querySelector('.member-admin-badge');
+    if (newVal && !badge) {
+      const b = document.createElement('div'); b.className = 'member-admin-badge'; b.textContent = 'ADMIN';
+      row?.querySelector('.member-email')?.insertAdjacentElement('afterend', b);
+    } else if (!newVal && badge) {
+      badge.remove();
+    }
+    btn.onclick = () => toggleAdmin(userId, newVal, btn);
+  }
+
   async function suspendMember(userId) {
     if (!confirm('Suspend this member? They lose access right away.')) return;
     const { error } = await sb.from('profiles').update({ status: 'suspended' }).eq('id', userId);
     if (error) return;
     const row = document.getElementById('member-' + userId);
     if (row) row.remove();
-    const remaining = document.querySelectorAll('.member-row').length;
+    const remaining = document.querySelectorAll('#members-list .member-row').length;
     document.getElementById('member-count').textContent = remaining + ' active';
     if (remaining === 0) renderEmpty(document.getElementById('members-list'), 'No active members yet.');
+    await loadSuspended();
+  }
+
+  // ── Suspended ─────────────────────────────────────────────────
+
+  async function loadSuspended() {
+    const [{ data: suspended }, { data: apps }] = await Promise.all([
+      sb.from('profiles').select('id, tier, is_admin').eq('status', 'suspended'),
+      sb.from('applications').select('user_id, email, name')
+    ]);
+
+    const appMap = {};
+    (apps || []).forEach(a => { appMap[a.user_id] = { email: a.email, name: a.name }; });
+
+    const list = document.getElementById('suspended-list');
+    list.innerHTML = '';
+    const rows = suspended || [];
+    document.getElementById('suspended-count').textContent = rows.length ? rows.length + ' suspended' : '';
+
+    if (rows.length === 0) { renderEmpty(list, 'No suspended accounts.'); return; }
+    rows.forEach(m => list.appendChild(buildSuspendedRow(m, appMap[m.id])));
+  }
+
+  function buildSuspendedRow(member, appData) {
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    row.id = 'suspended-' + member.id;
+
+    const top = document.createElement('div'); top.className = 'member-top';
+    const info = document.createElement('div');
+    const nameEl = document.createElement('div'); nameEl.className = 'member-name'; nameEl.textContent = appData?.name || 'No name on file';
+    const emailEl = document.createElement('div'); emailEl.className = 'member-email'; emailEl.textContent = appData?.email || 'No email on file';
+    info.appendChild(nameEl); info.appendChild(emailEl);
+
+    const actions = document.createElement('div'); actions.className = 'member-actions';
+    const reinstateBtn = document.createElement('button'); reinstateBtn.className = 'reinstate-btn'; reinstateBtn.textContent = 'REINSTATE';
+    reinstateBtn.onclick = () => reinstateMember(member.id, member.tier || 1, reinstateBtn);
+    actions.appendChild(reinstateBtn);
+
+    top.appendChild(info); top.appendChild(actions);
+    row.appendChild(top);
+    return row;
+  }
+
+  async function reinstateMember(userId, tier, btn) {
+    btn.disabled = true;
+    btn.textContent = '...';
+    const { error } = await sb.from('profiles').update({ status: 'active', tier }).eq('id', userId);
+    if (error) { btn.disabled = false; btn.textContent = 'REINSTATE'; return; }
+    const row = document.getElementById('suspended-' + userId);
+    if (row) row.remove();
+    const remaining = document.querySelectorAll('#suspended-list .member-row').length;
+    document.getElementById('suspended-count').textContent = remaining ? remaining + ' suspended' : '';
+    if (remaining === 0) renderEmpty(document.getElementById('suspended-list'), 'No suspended accounts.');
+    await loadMembers();
   }
 
   function renderEmpty(container, msg) {
