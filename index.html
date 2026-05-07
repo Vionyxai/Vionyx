@@ -602,10 +602,10 @@ function loadSessionHistory() {
 async function loadProfile() {
   if (!currentUser) return;
   try {
-    const { data, error } = await sb.from("profiles").select("tier, status").eq("user_id", currentUser.id).single();
+    const { data, error } = await sb.from("profiles").select("tier, status").eq("id", currentUser.id).single();
     if (!error && data) {
-      currentUserTier = data.tier ?? 1;
-      currentUserStatus = data.status ?? "pending";
+      currentUserTier = data.tier || 1;
+      currentUserStatus = data.status || "pending";
     } else {
       currentUserTier = 1;
       currentUserStatus = "pending";
