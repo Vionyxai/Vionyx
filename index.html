@@ -375,6 +375,7 @@ let pendingLog = null;
 let currentFilter = "all";
 let loading = false;
 let authMode = "login";
+let typingCounter = 0;
 
 window.addEventListener("load", async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -449,7 +450,13 @@ async function signOut() {
   document.getElementById("suspended-screen").classList.add("hidden");
   document.getElementById("upgrade-panel").classList.add("hidden");
   document.getElementById("auth-screen").classList.remove("hidden");
-  document.getElementById("chat-area").innerHTML = `<div class="chat-empty" id="chat-empty"><div class="chat-empty-symbol">&#10022;</div><div class="chat-empty-main">What is present right now?</div><div class="chat-empty-sub">Say as much or as little as you want.</div></div>`;
+  const area = document.getElementById("chat-area");
+  area.innerHTML = "";
+  const empty = document.createElement("div"); empty.className = "chat-empty"; empty.id = "chat-empty";
+  const sym = document.createElement("div"); sym.className = "chat-empty-symbol"; sym.textContent = "✦";
+  const main = document.createElement("div"); main.className = "chat-empty-main"; main.textContent = "What is present right now?";
+  const sub = document.createElement("div"); sub.className = "chat-empty-sub"; sub.textContent = "Say as much or as little as you want.";
+  empty.appendChild(sym); empty.appendChild(main); empty.appendChild(sub); area.appendChild(empty);
 }
 
 async function showApp() {
@@ -548,6 +555,8 @@ function buildPatternContext(entries) {
 
   const filtered = signals.filter(s => s.length > 0);
   if (filtered.length === 0) return "";
+  const combined = filtered.join("\n");
+  if (combined.length > 3000) return "";
 
   return `
 PATTERN CONTEXT (invisible to user — use only when patterns surface naturally in conversation):
@@ -556,7 +565,7 @@ Do NOT reference this history directly or tell the user you have it.
 ONLY use it when a current pattern connects to something from the past — surface the connection naturally as insight, not as recall.
 Connect patterns across different situations to show the user how the same pattern shows up in multiple areas of their life.
 
-${filtered.join("\n")}
+${combined}
 
 Pattern instruction: When you detect a recurring trigger, emotional pattern, or behavioral loop that matches something in this history, reflect it back as a present observation — not a memory. Make the user feel deeply understood, not tracked.`;
 }
@@ -700,7 +709,7 @@ function appendMessage(role, text, log, pendingSave) {
 function appendTyping() {
   const chat = document.getElementById("chat-area");
   const wrap = document.createElement("div"); wrap.className = "msg-wrap assistant";
-  const id = "typing-" + Date.now(); wrap.id = id;
+  const id = "typing-" + (++typingCounter); wrap.id = id;
   const bubble = document.createElement("div"); bubble.className = "typing-bubble";
   for (let i = 0; i < 3; i++) { const d = document.createElement("div"); d.className = "typing-dot"; bubble.appendChild(d); }
   wrap.appendChild(bubble); chat.appendChild(wrap);
@@ -769,7 +778,15 @@ function renderJournal() {
     if (currentFilter === "completed") return t === "FG Made";
     return true;
   });
-  if (filtered.length === 0) { list.innerHTML = `<div class="journal-empty"><div class="chat-empty-symbol">&#10022;</div><div style="color:#444450;font-family:'Syne',sans-serif;font-size:13px;">Nothing captured yet.</div><div style="color:#222228;font-size:11px;">Entries are saved when you choose to.</div></div>`; return; }
+  if (filtered.length === 0) {
+    list.innerHTML = "";
+    const empty = document.createElement("div"); empty.className = "journal-empty";
+    const sym = document.createElement("div"); sym.className = "chat-empty-symbol"; sym.textContent = "✦";
+    const msg = document.createElement("div"); msg.style.cssText = "color:#444450;font-family:'Syne',sans-serif;font-size:13px;"; msg.textContent = "Nothing captured yet.";
+    const hint = document.createElement("div"); hint.style.cssText = "color:#222228;font-size:11px;"; hint.textContent = "Entries are saved when you choose to.";
+    empty.appendChild(sym); empty.appendChild(msg); empty.appendChild(hint); list.appendChild(empty);
+    return;
+  }
 
   filtered.forEach(e => {
     const t = e.log?.entry_type || ""; const l = e.log || {}; const c = ENTRY_COLORS[t] || {};

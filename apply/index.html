@@ -55,7 +55,7 @@
 <body>
 <div class="page">
   <div class="topbar">
-    <a class="back-link" href="https://vionyx-xi.vercel.app">&#8592; Return to session</a>
+    <a class="back-link" href="/">&#8592; Return to session</a>
     <div class="logo">VIONYX</div>
     <button class="signout-link" id="signout-btn">Sign out</button>
   </div>
@@ -145,7 +145,7 @@
     <div class="confirm-symbol">&#10022;</div>
     <div class="confirm-headline">Application received.</div>
     <div class="confirm-body">We&rsquo;ll reach out when access is granted. No action needed on your end. Keep an eye on the email you signed up with.</div>
-    <a class="back-link" href="https://vionyx-xi.vercel.app" style="font-size:13px;">&#8592; Return to session</a>
+    <a class="back-link" href="/" style="font-size:13px;">&#8592; Return to session</a>
   </div>
 
   <div class="footer-note">VIONYX.AI</div>
@@ -156,13 +156,16 @@
   const SUPABASE_KEY = "sb_publishable_XB2lbu1MNRx_TnnetQnSGQ_OwJjXmPR";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const APP_URL = "https://vionyx-xi.vercel.app";
+  const APP_URL = window.location.origin;
   let currentUser = null;
 
   window.addEventListener("load", async () => {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) { window.location.href = APP_URL; return; }
     currentUser = session.user;
+    const { data: profile } = await sb.from("profiles").select("status").eq("id", currentUser.id).single();
+    const status = profile?.status || "pending";
+    if (status !== "pending") { window.location.href = APP_URL; return; }
     if (localStorage.getItem("vx_applied_" + currentUser.id)) {
       showConfirm();
     }
@@ -192,6 +195,10 @@
       showError("All fields are required.");
       return;
     }
+    if (parseInt(age) < 13 || parseInt(age) > 120) {
+      showError("Please enter a valid age.");
+      return;
+    }
 
     const btn = document.getElementById("submit-btn");
     btn.disabled = true;
@@ -219,7 +226,6 @@
         showConfirm();
         return;
       }
-      console.error("Application insert error:", insertError);
       showError(insertError.message || "Something went wrong. Try again in a moment.");
       btn.disabled = false;
       btn.textContent = "SUBMIT APPLICATION";
