@@ -50,7 +50,7 @@
         display: flex !important;
         width: 300px;
         flex-shrink: 0;
-        border-right: 1px solid var(--border);
+        border-right: 1px solid var(--border2);
         flex-direction: column;
       }
       #reflect-tab {
@@ -290,9 +290,9 @@
         <div class="tier-card" id="tier-card-3">
           <div class="tier-card-header">
             <div class="tier-card-name">TIER 3 COLD MIRROR</div>
-            <span class="tier-card-badge soon" id="tier-badge-3">COMING SOON</span>
+            <span class="tier-card-badge" id="tier-badge-3"></span>
           </div>
-          <div class="tier-card-desc">For high performers and people with real pattern recognition. No structure, no hand-holding — just a precise reflection of what is operating underneath the noise. Amplifies signal. Strips everything else. By invitation only.</div>
+          <div class="tier-card-desc">For high performers and people with real pattern recognition. No structure, no hand-holding. Just a precise reflection of what is operating underneath the noise. Amplifies signal. Strips everything else. By invitation only.</div>
         </div>
       </div>
       <div class="upgrade-cta">To request access or upgrade your tier, email <a href="mailto:access@vionyx.ai">access@vionyx.ai</a></div>
@@ -788,11 +788,7 @@ function openUpgradePanel() {
   [1, 2, 3].forEach(t => {
     const card = document.getElementById("tier-card-" + t);
     const badge = document.getElementById("tier-badge-" + t);
-    if (t === 3) {
-      card.classList.remove("active");
-      badge.textContent = "COMING SOON";
-      badge.className = "tier-card-badge soon";
-    } else if (t === currentUserTier) {
+    if (t === currentUserTier) {
       card.classList.add("active");
       badge.textContent = "YOUR TIER";
       badge.className = "tier-card-badge current";
