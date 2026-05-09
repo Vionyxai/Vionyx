@@ -3,254 +3,532 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VIONYX Apply</title>
+  <title>Vionyx — Access Application</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #080809; --bg2: #0f0f12; --bg3: #141418;
-      --border: #1c1c24; --border2: #252530;
-      --text: #e2e2e6; --text2: #9090a0; --text3: #444450;
-      --accent: #7c3aed; --accent2: #9d5cf6; --accent-dim: #2d1a5c;
+      --bg: #0a0a0c;
+      --bg2: #111116;
+      --bg3: #18181f;
+      --border: #1e1e28;
+      --border2: #2a2a38;
+      --text: #f0f0f5;
+      --text2: #9898b0;
+      --text3: #5a5a72;
+      --accent: #7c5cfc;
+      --accent2: #6246ea;
+      --accent-dim: rgba(124,92,252,0.12);
     }
-    html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; font-size: 14px; }
-    .page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 48px 24px 64px; }
-    .topbar { width: 100%; max-width: 680px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 48px; }
-    .back-link { font-size: 12px; color: var(--text3); text-decoration: none; font-family: 'Syne', sans-serif; letter-spacing: 0.06em; transition: color 0.15s; }
-    .back-link:hover { color: var(--text2); }
-    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.2em; color: #fff; }
-    .signout-link { font-size: 12px; color: var(--text3); background: none; border: none; cursor: pointer; font-family: 'Syne', sans-serif; letter-spacing: 0.06em; transition: color 0.15s; }
-    .signout-link:hover { color: var(--text2); }
-    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 48px 44px; width: 100%; max-width: 680px; display: flex; flex-direction: column; gap: 32px; }
-    .card-eyebrow { font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: 0.18em; text-transform: uppercase; }
-    .card-headline { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; letter-spacing: 0.06em; color: #fff; line-height: 1.2; }
-    .card-subtext { font-size: 13px; color: var(--text2); line-height: 1.7; }
-    .questions { display: flex; flex-direction: column; gap: 28px; }
-    .info-row { display: flex; gap: 16px; }
-    .question-block { display: flex; flex-direction: column; gap: 10px; }
-    .question-label { font-size: 11px; color: var(--text3); font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.1em; }
-    .question-text { font-size: 13.5px; color: var(--text); line-height: 1.6; margin-bottom: 2px; }
-    .question-input { background: var(--bg); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; resize: vertical; min-height: 80px; line-height: 1.55; transition: border-color 0.2s; width: 100%; }
-    .question-input:focus { border-color: var(--accent); }
-    .submit-btn { padding: 14px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; font-size: 12px; font-family: 'Syne', sans-serif; background: var(--accent); color: #fff; letter-spacing: 0.1em; transition: background 0.2s; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 20px 80px;
+    }
+    .wordmark {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 0.18em;
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 52px;
+      display: block;
+      text-align: center;
+    }
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+    .card-header { display: flex; flex-direction: column; gap: 10px; }
+    .eyebrow {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: 'Syne', sans-serif;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      letter-spacing: 0.06em;
+      color: #fff;
+    }
+    .subtext {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.65;
+      margin-top: 2px;
+    }
+    .fields { display: flex; flex-direction: column; gap: 28px; }
+    .field { display: flex; flex-direction: column; gap: 10px; }
+    .field-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+    .field-question {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .field-row { display: flex; flex-direction: column; gap: 10px; }
+    textarea {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 14px 16px;
+      resize: vertical;
+      min-height: 90px;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--text3); }
+    .slider-row { display: flex; flex-direction: column; gap: 6px; }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text3);
+      font-family: 'Syne', sans-serif;
+      letter-spacing: 0.06em;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--border2);
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { background: var(--accent2); }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+    .slider-value {
+      text-align: right;
+      font-size: 12px;
+      color: var(--accent);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+    }
+    .divider { border: none; border-top: 1px solid var(--border); }
+    .basics { display: flex; flex-direction: column; gap: 18px; }
+    .basics-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+    .basics-row { display: flex; gap: 14px; flex-wrap: wrap; }
+    .basics-field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 140px; }
+    .basics-field label { font-size: 11px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: 0.1em; }
+    input[type="text"], input[type="number"], select {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, select:focus { border-color: var(--accent); }
+    select { cursor: pointer; }
+    select option { background: var(--bg2); }
+    .actions { display: flex; flex-direction: column; gap: 12px; }
+    .submit-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: 100%;
+    }
     .submit-btn:hover { background: var(--accent2); }
-    .submit-btn:disabled { opacity: 0.5; cursor: default; }
-    .error-bar { background: #2d0f0f; border: 1px solid #5c1f1f; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #ef4444; }
-    .confirm-symbol { font-size: 22px; color: var(--text3); }
-    .confirm-headline { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; letter-spacing: 0.06em; color: #fff; }
-    .confirm-body { font-size: 13px; color: var(--text2); line-height: 1.7; }
-    .footer-note { font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: 0.08em; text-align: center; margin-top: 32px; }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .back-link {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text3);
+      border-radius: 10px;
+      padding: 11px;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+    }
+    .back-link:hover { color: var(--text2); border-color: var(--border2); }
+    .signout-link {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text3);
+      cursor: pointer;
+      margin-top: 8px;
+      font-family: 'DM Sans', sans-serif;
+      background: none;
+      border: none;
+      transition: color 0.15s;
+    }
+    .signout-link:hover { color: var(--text2); }
+    .error-msg {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #f87171;
+      display: none;
+    }
+    /* Confirmation state */
+    .confirm-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 64px 44px;
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+    .confirm-check {
+      width: 52px;
+      height: 52px;
+      background: var(--accent-dim);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    .confirm-check svg { width: 22px; height: 22px; color: var(--accent); }
+    .confirm-headline {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 24px;
+      letter-spacing: 0.08em;
+      color: #fff;
+    }
+    .confirm-body {
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.65;
+    }
     .hidden { display: none !important; }
-    .rating-row { display: flex; align-items: center; gap: 10px; padding: 6px 0 2px; }
-    .rating-end { font-size: 11px; color: var(--text3); font-family: 'Syne', sans-serif; font-weight: 700; min-width: 14px; }
-    .rating-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 3px; border-radius: 2px; background: var(--border2); outline: none; cursor: pointer; }
-    .rating-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; transition: background 0.15s; }
-    .rating-slider::-webkit-slider-thumb:hover { background: var(--accent2); }
-    .rating-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; }
-    .rating-val { font-size: 14px; color: var(--accent2); font-family: 'Syne', sans-serif; font-weight: 800; min-width: 22px; text-align: right; }
+    @media (max-width: 600px) {
+      .card, .confirm-card { padding: 36px 24px; }
+      .basics-row { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
-<div class="page">
-  <div class="topbar">
-    <a class="back-link" href="/">&#8592; Return to session</a>
-    <div class="logo">VIONYX</div>
-    <button class="signout-link" id="signout-btn">Sign out</button>
-  </div>
+  <a class="wordmark" href="/">VIONYX</a>
 
-  <div class="card" id="form-view">
-    <div class="card-eyebrow">Getting In</div>
-    <div class="card-headline">Tell us about you.</div>
-    <div class="card-subtext">Five questions. No right answer to any of them. Just be real with it.</div>
-    <div class="card-subtext" style="font-size:12px; color: var(--text3);">You can write or just use the slider. If something comes to mind write it out. It helps.</div>
+  <!-- Form state -->
+  <div id="form-state" class="card hidden">
+    <div class="card-header">
+      <div class="eyebrow">Access Application</div>
+      <div class="headline">Tell us about you.</div>
+      <div class="subtext">Five questions. No right answers. We&rsquo;re looking for signal, not polish.</div>
+    </div>
 
-    <div class="questions">
-      <div class="info-row">
-        <div class="question-block" style="flex:2;">
-          <div class="question-label">Name</div>
-          <input class="question-input" id="name" type="text" placeholder="Full name" style="min-height:unset;resize:none;" />
-        </div>
-        <div class="question-block" style="flex:1;">
-          <div class="question-label">Age</div>
-          <input class="question-input" id="age" type="number" min="13" max="120" placeholder="Age" style="min-height:unset;resize:none;" />
-        </div>
-      </div>
-      <div class="question-block">
-        <div class="question-label">Gender</div>
-        <input class="question-input" id="gender" type="text" placeholder="How you identify" style="min-height:unset;resize:none;" />
-      </div>
-      <div class="question-block">
-        <div class="question-label">01</div>
-        <div class="question-text">What&rsquo;s one area of your life where you keep getting the same result no matter what you try?</div>
-        <textarea class="question-input" id="q1" rows="3" placeholder="Be specific."></textarea>
-        <div class="rating-row">
-          <span class="rating-end">1</span>
-          <input type="range" class="rating-slider" id="q1_rating" min="1" max="10" value="5" oninput="document.getElementById('q1v').textContent=this.value" />
-          <span class="rating-end">10</span>
-          <span class="rating-val" id="q1v">5</span>
+    <div class="fields">
+      <div class="field">
+        <div class="field-label">01</div>
+        <div class="field-question">What&rsquo;s one area of your life where you know exactly what you should be doing — but consistently don&rsquo;t?</div>
+        <div class="field-row">
+          <textarea id="q1" placeholder="Take your time." rows="4"></textarea>
+          <div class="slider-row">
+            <input type="range" id="q1_rating" min="1" max="10" value="5" oninput="updateSlider(this)" />
+            <div class="slider-labels">
+              <span>1 — Surface level</span>
+              <div class="slider-value" id="q1_val">5</div>
+              <span>10 — Raw</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="question-block">
-        <div class="question-label">02</div>
-        <div class="question-text">When you&rsquo;ve tried to build consistency before, what was the first thing that broke down?</div>
-        <textarea class="question-input" id="q2" rows="3" placeholder="What happened?"></textarea>
-        <div class="rating-row">
-          <span class="rating-end">1</span>
-          <input type="range" class="rating-slider" id="q2_rating" min="1" max="10" value="5" oninput="document.getElementById('q2v').textContent=this.value" />
-          <span class="rating-end">10</span>
-          <span class="rating-val" id="q2v">5</span>
+
+      <div class="field">
+        <div class="field-label">02</div>
+        <div class="field-question">When you&rsquo;ve tried to build consistency or change a pattern before — what actually got in the way?</div>
+        <div class="field-row">
+          <textarea id="q2" placeholder="Be specific if you can." rows="4"></textarea>
+          <div class="slider-row">
+            <input type="range" id="q2_rating" min="1" max="10" value="5" oninput="updateSlider(this)" />
+            <div class="slider-labels">
+              <span>1 — Surface level</span>
+              <div class="slider-value" id="q2_val">5</div>
+              <span>10 — Raw</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="question-block">
-        <div class="question-label">03</div>
-        <div class="question-text">How do you typically respond when pressure builds and the plan stops working?</div>
-        <textarea class="question-input" id="q3" rows="3" placeholder="Honest answer."></textarea>
-        <div class="rating-row">
-          <span class="rating-end">1</span>
-          <input type="range" class="rating-slider" id="q3_rating" min="1" max="10" value="5" oninput="document.getElementById('q3v').textContent=this.value" />
-          <span class="rating-end">10</span>
-          <span class="rating-val" id="q3v">5</span>
+
+      <div class="field">
+        <div class="field-label">03</div>
+        <div class="field-question">How do you typically respond when someone — or something — holds you accountable?</div>
+        <div class="field-row">
+          <textarea id="q3" placeholder="What comes up for you?" rows="4"></textarea>
+          <div class="slider-row">
+            <input type="range" id="q3_rating" min="1" max="10" value="5" oninput="updateSlider(this)" />
+            <div class="slider-labels">
+              <span>1 — Surface level</span>
+              <div class="slider-value" id="q3_val">5</div>
+              <span>10 — Raw</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="question-block">
-        <div class="question-label">04</div>
-        <div class="question-text">What&rsquo;s something about the way you think or operate that most people in your life don&rsquo;t fully get?</div>
-        <textarea class="question-input" id="q4" rows="3" placeholder="Take your time with this one."></textarea>
-        <div class="rating-row">
-          <span class="rating-end">1</span>
-          <input type="range" class="rating-slider" id="q4_rating" min="1" max="10" value="5" oninput="document.getElementById('q4v').textContent=this.value" />
-          <span class="rating-end">10</span>
-          <span class="rating-val" id="q4v">5</span>
+
+      <div class="field">
+        <div class="field-label">04</div>
+        <div class="field-question">What&rsquo;s something about the way you think or operate that most people in your life don&rsquo;t fully see?</div>
+        <div class="field-row">
+          <textarea id="q4" placeholder="The part you don't usually say out loud." rows="4"></textarea>
+          <div class="slider-row">
+            <input type="range" id="q4_rating" min="1" max="10" value="5" oninput="updateSlider(this)" />
+            <div class="slider-labels">
+              <span>1 — Surface level</span>
+              <div class="slider-value" id="q4_val">5</div>
+              <span>10 — Raw</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="question-block">
-        <div class="question-label">05</div>
-        <div class="question-text">What made you stop and apply today instead of keeping it moving?</div>
-        <textarea class="question-input" id="q5" rows="3" placeholder="What shifted?"></textarea>
-        <div class="rating-row">
-          <span class="rating-end">1</span>
-          <input type="range" class="rating-slider" id="q5_rating" min="1" max="10" value="5" oninput="document.getElementById('q5v').textContent=this.value" />
-          <span class="rating-end">10</span>
-          <span class="rating-val" id="q5v">5</span>
+
+      <div class="field">
+        <div class="field-label">05</div>
+        <div class="field-question">What made you stop and apply today?</div>
+        <div class="field-row">
+          <textarea id="q5" placeholder="What actually brought you here?" rows="4"></textarea>
+          <div class="slider-row">
+            <input type="range" id="q5_rating" min="1" max="10" value="5" oninput="updateSlider(this)" />
+            <div class="slider-labels">
+              <span>1 — Surface level</span>
+              <div class="slider-value" id="q5_val">5</div>
+              <span>10 — Raw</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="error-bar hidden" id="error-bar"></div>
-    <button class="submit-btn" id="submit-btn" onclick="submitApplication()">SUBMIT APPLICATION</button>
+    <hr class="divider" />
+
+    <div class="basics">
+      <div class="basics-label">About You</div>
+      <div class="basics-row">
+        <div class="basics-field">
+          <label for="f-name">Name</label>
+          <input type="text" id="f-name" placeholder="First name" />
+        </div>
+        <div class="basics-field">
+          <label for="f-age">Age</label>
+          <input type="number" id="f-age" placeholder="Age" min="13" max="120" />
+        </div>
+        <div class="basics-field">
+          <label for="f-gender">Gender</label>
+          <select id="f-gender">
+            <option value="">Select</option>
+            <option value="man">Man</option>
+            <option value="woman">Woman</option>
+            <option value="nonbinary">Non-binary</option>
+            <option value="other">Other</option>
+            <option value="prefer_not">Prefer not to say</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-msg" class="error-msg"></div>
+
+    <div class="actions">
+      <button class="submit-btn" id="submit-btn" onclick="submitApplication()">SUBMIT APPLICATION</button>
+      <a class="back-link" href="/">&#8592; Return to session</a>
+      <button class="signout-link" onclick="handleSignOut()">Sign out</button>
+    </div>
   </div>
 
-  <div class="card hidden" id="confirm-view">
-    <div class="confirm-symbol">&#10022;</div>
-    <div class="confirm-headline">Got it.</div>
-    <div class="confirm-body">We&rsquo;ll reach out when a spot opens up. Watch the email you signed up with.</div>
-    <a class="back-link" href="/" style="font-size:13px;">&#8592; Return to session</a>
+  <!-- Confirmation state -->
+  <div id="confirm-state" class="confirm-card hidden">
+    <div class="confirm-check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <div class="confirm-headline">Application received.</div>
+    <div class="confirm-body">We&rsquo;ll reach out when access is granted.<br>No action needed on your end.</div>
+    <a class="back-link" href="/">&#8592; Return to session</a>
+    <button class="signout-link" onclick="handleSignOut()">Sign out</button>
   </div>
 
-  <div class="footer-note">VIONYX.AI</div>
-</div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const { createClient } = supabase;
+    const sb = createClient(
+      "https://msyyhgeuqnhksyyqhvsr.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zeXloZ2V1cW5oa3N5eXFodnNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMzkwNDYsImV4cCI6MjA2MTcxNTA0Nn0.6b7G7eAJyBHrXFAHFMKUQQzFxrHEknhJv3_AIzCmERM"
+    );
 
-<script>
-  const SUPABASE_URL = "https://msyyhgeuqnhksyyqhvsr.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_XB2lbu1MNRx_TnnetQnSGQ_OwJjXmPR";
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let currentUser = null;
 
-  const APP_URL = window.location.origin;
-  let currentUser = null;
-
-  window.addEventListener("load", async () => {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = APP_URL; return; }
-    currentUser = session.user;
-    const { data: profile } = await sb.from("profiles").select("status").eq("id", currentUser.id).single();
-    const status = profile?.status || "pending";
-    if (status !== "pending") { window.location.href = APP_URL; return; }
-    if (localStorage.getItem("vx_applied_" + currentUser.id)) {
-      showConfirm();
-    }
-  });
-
-  document.getElementById("signout-btn").addEventListener("click", async () => {
-    await sb.auth.signOut();
-    window.location.href = APP_URL;
-  });
-
-  async function submitApplication() {
-    const name = document.getElementById("name").value.trim();
-    const age = document.getElementById("age").value.trim();
-    const gender = document.getElementById("gender").value.trim();
-    const q1 = document.getElementById("q1").value.trim();
-    const q2 = document.getElementById("q2").value.trim();
-    const q3 = document.getElementById("q3").value.trim();
-    const q4 = document.getElementById("q4").value.trim();
-    const q5 = document.getElementById("q5").value.trim();
-    const q1_rating = parseInt(document.getElementById("q1_rating").value);
-    const q2_rating = parseInt(document.getElementById("q2_rating").value);
-    const q3_rating = parseInt(document.getElementById("q3_rating").value);
-    const q4_rating = parseInt(document.getElementById("q4_rating").value);
-    const q5_rating = parseInt(document.getElementById("q5_rating").value);
-
-    if (!name || !age || !gender) {
-      showError("Name, age, and gender are required.");
-      return;
-    }
-    if (parseInt(age) < 13 || parseInt(age) > 120) {
-      showError("Please enter a valid age.");
-      return;
+    function updateSlider(input) {
+      const num = input.id.replace("_rating", "");
+      document.getElementById(num + "_val").textContent = input.value;
     }
 
-    const btn = document.getElementById("submit-btn");
-    btn.disabled = true;
-    btn.textContent = "Submitting...";
-    hideError();
+    function showError(msg) {
+      const el = document.getElementById("error-msg");
+      el.textContent = msg;
+      el.style.display = "block";
+    }
 
-    let insertError = null;
-    try {
+    function clearError() {
+      const el = document.getElementById("error-msg");
+      el.style.display = "none";
+    }
+
+    function showConfirmation() {
+      document.getElementById("form-state").classList.add("hidden");
+      document.getElementById("confirm-state").classList.remove("hidden");
+    }
+
+    async function handleSignOut() {
+      await sb.auth.signOut();
+      window.location.href = "/";
+    }
+
+    async function submitApplication() {
+      clearError();
+      const q1 = document.getElementById("q1").value.trim();
+      const q2 = document.getElementById("q2").value.trim();
+      const q3 = document.getElementById("q3").value.trim();
+      const q4 = document.getElementById("q4").value.trim();
+      const q5 = document.getElementById("q5").value.trim();
+      const name = document.getElementById("f-name").value.trim();
+      const age = document.getElementById("f-age").value.trim();
+      const gender = document.getElementById("f-gender").value;
+
+      if (!q1 || !q2 || !q3 || !q4 || !q5) {
+        showError("Please answer all five questions before submitting.");
+        return;
+      }
+      if (!name || !age || !gender) {
+        showError("Please fill in your name, age, and gender.");
+        return;
+      }
+
+      const btn = document.getElementById("submit-btn");
+      btn.disabled = true;
+      btn.textContent = "SUBMITTING...";
+
+      const q1_rating = parseInt(document.getElementById("q1_rating").value);
+      const q2_rating = parseInt(document.getElementById("q2_rating").value);
+      const q3_rating = parseInt(document.getElementById("q3_rating").value);
+      const q4_rating = parseInt(document.getElementById("q4_rating").value);
+      const q5_rating = parseInt(document.getElementById("q5_rating").value);
+
       const { error } = await sb.from("applications").insert({
         user_id: currentUser.id,
         email: currentUser.email,
-        name, age, gender,
+        name,
+        age: parseInt(age),
+        gender,
         q1, q2, q3, q4, q5,
         q1_rating, q2_rating, q3_rating, q4_rating, q5_rating
       });
-      insertError = error;
-    } catch (e) {
-      insertError = { message: e.message || "Unexpected error. Try again." };
-    }
 
-    if (insertError) {
-      // Already submitted from another device — treat as success
-      if (insertError.code === "23505") {
-        localStorage.setItem("vx_applied_" + currentUser.id, "true");
-        showConfirm();
+      if (error && error.code !== "23505") {
+        btn.disabled = false;
+        btn.textContent = "SUBMIT APPLICATION";
+        showError("Something went wrong. Please try again.");
         return;
       }
-      showError(insertError.message || "Something went wrong. Try again in a moment.");
-      btn.disabled = false;
-      btn.textContent = "SUBMIT APPLICATION";
-      return;
+
+      localStorage.setItem("vx_applied_" + currentUser.id, "true");
+      showConfirmation();
     }
 
-    localStorage.setItem("vx_applied_" + currentUser.id, "true");
-    showConfirm();
-  }
+    window.addEventListener("load", async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        window.location.href = "/";
+        return;
+      }
+      currentUser = session.user;
 
-  function showConfirm() {
-    document.getElementById("form-view").classList.add("hidden");
-    document.getElementById("confirm-view").classList.remove("hidden");
-  }
+      const { data: profile } = await sb.from("profiles").select("status").eq("id", currentUser.id).single();
+      if (profile && profile.status === "active") {
+        window.location.href = "/";
+        return;
+      }
 
-  function showError(msg) {
-    const bar = document.getElementById("error-bar");
-    bar.textContent = msg;
-    bar.classList.remove("hidden");
-  }
+      if (localStorage.getItem("vx_applied_" + currentUser.id)) {
+        document.getElementById("confirm-state").classList.remove("hidden");
+        return;
+      }
 
-  function hideError() {
-    document.getElementById("error-bar").classList.add("hidden");
-  }
-</script>
+      document.getElementById("form-state").classList.remove("hidden");
+    });
+  </script>
 </body>
 </html>

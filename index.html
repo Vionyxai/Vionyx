@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VIONYX</title>
+  <title>VIONYX — Reflective AI Journal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,7 +16,7 @@
       --accent: #7c3aed; --accent2: #9d5cf6; --accent-dim: #2d1a5c;
     }
     html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; font-size: 14px; overflow: hidden; }
-    #root { display: flex; flex-direction: column; height: 100vh; width: 100%; }
+    #root { display: flex; flex-direction: column; height: 100vh; max-width: 900px; margin: 0 auto; }
     ::-webkit-scrollbar { width: 0; }
     .auth-screen { flex: 1; display: flex; align-items: center; justify-content: center; }
     .auth-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 52px 44px; width: 380px; display: flex; flex-direction: column; gap: 20px; }
@@ -38,41 +38,8 @@
     .tabs { display: flex; gap: 2px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
     .tab-btn { padding: 5px 18px; border-radius: 6px; border: none; cursor: pointer; font-size: 11px; font-weight: 600; font-family: 'Syne', sans-serif; letter-spacing: 0.06em; background: transparent; color: var(--text3); transition: all 0.15s; }
     .tab-btn.active { background: var(--bg3); color: var(--accent2); }
-    .signout-btn { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text3); background: transparent; border: 1px solid var(--border2); border-radius: 20px; padding: 4px 12px; cursor: pointer; font-family: 'Syne', sans-serif; transition: all 0.15s; }
-    .signout-btn:hover { color: var(--accent2); border-color: var(--accent); }
-    .signout-icon { display: none; flex-shrink: 0; }
-    .app-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
-
-    @media (min-width: 769px) {
-      .app-body { flex-direction: row; }
-      .tabs { display: none; }
-      #journal-tab {
-        display: flex !important;
-        width: 300px;
-        flex-shrink: 0;
-        border-right: 1px solid var(--border2);
-        flex-direction: column;
-      }
-      #reflect-tab {
-        display: flex !important;
-        flex: 1;
-        min-width: 0;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .signout-text { display: none; }
-      .signout-icon { display: block; }
-    }
-
-    @media (max-width: 520px) {
-      .topbar { padding: 0 12px; }
-      .topbar-logo { font-size: 13px; letter-spacing: 0.12em; }
-      .tab-btn { padding: 5px 12px; font-size: 10px; }
-      .tier-btn { padding: 4px 8px; font-size: 10px; }
-      .signout-btn { padding: 6px 8px; border-radius: 8px; }
-      .topbar-right { gap: 6px; }
-    }
+    .signout-btn { font-size: 11px; color: var(--text3); background: transparent; border: 1px solid var(--border2); border-radius: 20px; padding: 4px 12px; cursor: pointer; font-family: 'Syne', sans-serif; transition: all 0.15s; }
+    .signout-btn:hover { color: var(--text2); }
     .chat-area { flex: 1; overflow-y: auto; padding: 24px 0; display: flex; flex-direction: column; gap: 16px; }
     .chat-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding-top: 80px; }
     .chat-empty-symbol { font-size: 24px; color: var(--text3); }
@@ -138,6 +105,24 @@
     .tier-btn { font-size: 11px; color: var(--accent2); background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 20px; padding: 4px 12px; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.08em; transition: all 0.15s; }
     .tier-btn:hover { background: var(--accent); color: #fff; }
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; z-index: 999; }
+    .session-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; cursor: pointer; transition: border-color 0.15s; flex-shrink: 0; }
+    .session-card:hover { border-color: var(--border2); }
+    .session-card-date { font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .session-card-preview { font-size: 13px; color: var(--text2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .session-card-count { font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; margin-top: 8px; }
+    .session-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+    .session-modal { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 680px; max-height: 82vh; display: flex; flex-direction: column; overflow: hidden; }
+    .session-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .session-modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: #fff; letter-spacing: 0.08em; }
+    .session-modal-close { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 20px; line-height: 1; padding: 2px 6px; transition: color 0.15s; }
+    .session-modal-close:hover { color: var(--text); }
+    .session-modal-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .session-msg-wrap { display: flex; flex-direction: column; }
+    .session-msg-wrap.user { align-items: flex-end; }
+    .session-msg-wrap.assistant { align-items: flex-start; }
+    .session-bubble { max-width: 75%; padding: 12px 16px; line-height: 1.65; font-size: 13.5px; white-space: pre-wrap; }
+    .session-bubble.user { background: var(--accent-dim); color: #ddd6fe; border-radius: 16px 16px 4px 16px; }
+    .session-bubble.assistant { background: var(--bg2); color: #c9c9d4; border: 1px solid var(--border); border-radius: 16px 16px 16px 4px; }
     .upgrade-modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 40px 36px; width: 520px; max-width: 92vw; display: flex; flex-direction: column; gap: 24px; max-height: 90vh; overflow-y: auto; }
     .upgrade-modal-header { display: flex; align-items: center; justify-content: space-between; }
     .upgrade-modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: 0.1em; color: #fff; }
@@ -189,18 +174,10 @@
       </div>
       <div class="topbar-right">
         <button class="tier-btn" id="tier-btn" onclick="openUpgradePanel()">TIER 1</button>
-        <button class="signout-btn" onclick="signOut()">
-          <svg class="signout-icon" width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-            <path d="M5.5 2.5H3a.5.5 0 00-.5.5v9a.5.5 0 00.5.5h2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            <path d="M9 5l3.5 2.5L9 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-            <line x1="12.5" y1="7.5" x2="6" y2="7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-          </svg>
-          <span class="signout-text">Sign out</span>
-        </button>
+        <button class="signout-btn" onclick="signOut()">Sign out</button>
       </div>
     </div>
 
-    <div class="app-body">
     <div id="reflect-tab" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
       <div class="chat-area" id="chat-area">
         <div class="chat-empty" id="chat-empty">
@@ -226,16 +203,28 @@
       </div>
     </div>
 
-    <div id="journal-tab" style="display:none; flex-direction:column; overflow:hidden;">
+    <div id="journal-tab" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
       <div class="filter-row">
         <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
         <button class="filter-btn inactive" onclick="setFilter('journals',this)">Journals</button>
         <button class="filter-btn inactive" onclick="setFilter('commitments',this)">Commitments</button>
         <button class="filter-btn inactive" onclick="setFilter('completed',this)">Completed</button>
+        <button class="filter-btn inactive" onclick="setFilter('sessions',this)">Sessions</button>
       </div>
       <div class="journal-list" id="journal-list"></div>
     </div>
     </div><!-- end app-body -->
+
+    <div id="session-modal" class="session-modal-overlay hidden">
+      <div class="session-modal">
+        <div class="session-modal-header">
+          <div class="session-modal-title" id="session-modal-title"></div>
+          <button class="session-modal-close" onclick="closeSessionModal()">&#215;</button>
+        </div>
+        <div class="session-modal-body" id="session-modal-body"></div>
+      </div>
+    </div>
+
     <div class="app-footer">
       <a href="/legal/privacy/" target="_blank">Privacy Policy</a>
       <span>&#183;</span>
@@ -249,8 +238,7 @@
       <div class="status-eyebrow">Access Status</div>
       <div class="status-title">Application Under Review</div>
       <div class="status-body">Your account is pending approval. Once access is granted you will be able to begin your first session.</div>
-      <button class="status-btn" id="apply-btn" onclick="window.location.href='/apply/'">Submit Application</button>
-      <button class="status-btn" id="applied-btn" hidden disabled style="opacity:0.4;cursor:default;">Application Submitted</button>
+      <button id="apply-btn" class="status-btn" onclick="window.location.href='/apply/'">Submit Application</button>
       <button class="status-link-btn" onclick="openUpgradePanel()">See what you&rsquo;re waiting for</button>
       <button class="status-link-btn" onclick="signOut()">Sign out</button>
     </div>
@@ -275,24 +263,24 @@
       <div class="tier-cards">
         <div class="tier-card" id="tier-card-1">
           <div class="tier-card-header">
-            <div class="tier-card-name">TIER 1 WITNESS</div>
+            <div class="tier-card-name">TIER 1 &mdash; WITNESS</div>
             <span class="tier-card-badge" id="tier-badge-1"></span>
           </div>
           <div class="tier-card-desc">Mirror and clarify. Vionyx reflects what it hears, names what it notices, and asks one question that helps you go deeper into what you are already seeing. No pressure, no pushing, no auto-logging.</div>
         </div>
         <div class="tier-card" id="tier-card-2">
           <div class="tier-card-header">
-            <div class="tier-card-name">TIER 2 CALIBRATED</div>
+            <div class="tier-card-name">TIER 2 &mdash; CALIBRATED</div>
             <span class="tier-card-badge" id="tier-badge-2"></span>
           </div>
           <div class="tier-card-desc">Pattern identification and commitment accountability. The system applies pressure when useful, names avoidance when it sees it, and auto-logs commitments and completions.</div>
         </div>
         <div class="tier-card" id="tier-card-3">
           <div class="tier-card-header">
-            <div class="tier-card-name">TIER 3 COLD MIRROR</div>
-            <span class="tier-card-badge" id="tier-badge-3"></span>
+            <div class="tier-card-name">TIER 3 &mdash; COLD MIRROR</div>
+            <span class="tier-card-badge soon" id="tier-badge-3">COMING SOON</span>
           </div>
-          <div class="tier-card-desc">For high performers and people with real pattern recognition. No structure, no hand-holding. Just a precise reflection of what is operating underneath the noise. Amplifies signal. Strips everything else. By invitation only.</div>
+          <div class="tier-card-desc">For high performers and people with real pattern recognition. No structure, no hand-holding — just a precise reflection of what is operating underneath the noise. Amplifies signal. Strips everything else. By invitation only.</div>
         </div>
       </div>
       <div class="upgrade-cta">To request access or upgrade your tier, email <a href="mailto:access@vionyx.ai">access@vionyx.ai</a></div>
@@ -432,11 +420,11 @@ let currentUserStatus = "pending";
 let entries = [];
 let history = [];
 let sessionMessages = [];
+const currentSessionId = crypto.randomUUID();
 let pendingLog = null;
 let currentFilter = "all";
 let loading = false;
 let authMode = "login";
-let typingCounter = 0;
 
 window.addEventListener("load", async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -511,13 +499,7 @@ async function signOut() {
   document.getElementById("suspended-screen").classList.add("hidden");
   document.getElementById("upgrade-panel").classList.add("hidden");
   document.getElementById("auth-screen").classList.remove("hidden");
-  const area = document.getElementById("chat-area");
-  area.innerHTML = "";
-  const empty = document.createElement("div"); empty.className = "chat-empty"; empty.id = "chat-empty";
-  const sym = document.createElement("div"); sym.className = "chat-empty-symbol"; sym.textContent = "✦";
-  const main = document.createElement("div"); main.className = "chat-empty-main"; main.textContent = "What is present right now?";
-  const sub = document.createElement("div"); sub.className = "chat-empty-sub"; sub.textContent = "Say as much or as little as you want.";
-  empty.appendChild(sym); empty.appendChild(main); empty.appendChild(sub); area.appendChild(empty);
+  document.getElementById("chat-area").innerHTML = `<div class="chat-empty" id="chat-empty"><div class="chat-empty-symbol">&#10022;</div><div class="chat-empty-main">What is present right now?</div><div class="chat-empty-sub">Say as much or as little as you want.</div></div>`;
 }
 
 async function showApp() {
@@ -616,8 +598,6 @@ function buildPatternContext(entries) {
 
   const filtered = signals.filter(s => s.length > 0);
   if (filtered.length === 0) return "";
-  const combined = filtered.join("\n");
-  if (combined.length > 3000) return "";
 
   return `
 PATTERN CONTEXT (invisible to user — use only when patterns surface naturally in conversation):
@@ -626,7 +606,7 @@ Do NOT reference this history directly or tell the user you have it.
 ONLY use it when a current pattern connects to something from the past — surface the connection naturally as insight, not as recall.
 Connect patterns across different situations to show the user how the same pattern shows up in multiple areas of their life.
 
-${combined}
+${filtered.join("\n")}
 
 Pattern instruction: When you detect a recurring trigger, emotional pattern, or behavioral loop that matches something in this history, reflect it back as a present observation — not a memory. Make the user feel deeply understood, not tracked.`;
 }
@@ -681,10 +661,10 @@ function loadSessionHistory() {
 async function loadProfile() {
   if (!currentUser) return;
   try {
-    const { data, error } = await sb.from("profiles").select("tier, status").eq("id", currentUser.id).single();
+    const { data, error } = await sb.from("profiles").select("tier, status").eq("user_id", currentUser.id).single();
     if (!error && data) {
-      currentUserTier = data.tier || 1;
-      currentUserStatus = data.status || "pending";
+      currentUserTier = data.tier ?? 1;
+      currentUserStatus = data.status ?? "pending";
     } else {
       currentUserTier = 1;
       currentUserStatus = "pending";
@@ -692,6 +672,19 @@ async function loadProfile() {
   } catch {
     currentUserTier = 1;
     currentUserStatus = "pending";
+  }
+}
+
+function checkApplicationState() {
+  if (!currentUser) return;
+  const btn = document.getElementById("apply-btn");
+  if (!btn) return;
+  if (localStorage.getItem("vx_applied_" + currentUser.id)) {
+    btn.textContent = "Application Submitted";
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+    btn.style.cursor = "default";
+    btn.onclick = null;
   }
 }
 
@@ -728,6 +721,7 @@ async function sendMessage() {
     history = [...outgoing, { role: "assistant", content: clean }];
     sessionMessages.push({ role: "user", text });
     sessionMessages.push({ role: "assistant", text: clean, log });
+    persistConversation(text, clean);
     saveSessionHistory();
     const isJournal = ["Red Journal","Black Journal","White Journal","Gold Journal"].includes(log?.entry_type);
     const isAutoLog = log && !isJournal && currentUserTier >= 2;
@@ -770,7 +764,7 @@ function appendMessage(role, text, log, pendingSave) {
 function appendTyping() {
   const chat = document.getElementById("chat-area");
   const wrap = document.createElement("div"); wrap.className = "msg-wrap assistant";
-  const id = "typing-" + (++typingCounter); wrap.id = id;
+  const id = "typing-" + Date.now(); wrap.id = id;
   const bubble = document.createElement("div"); bubble.className = "typing-bubble";
   for (let i = 0; i < 3; i++) { const d = document.createElement("div"); d.className = "typing-dot"; bubble.appendChild(d); }
   wrap.appendChild(bubble); chat.appendChild(wrap);
@@ -788,7 +782,11 @@ function openUpgradePanel() {
   [1, 2, 3].forEach(t => {
     const card = document.getElementById("tier-card-" + t);
     const badge = document.getElementById("tier-badge-" + t);
-    if (t === currentUserTier) {
+    if (t === 3) {
+      card.classList.remove("active");
+      badge.textContent = "COMING SOON";
+      badge.className = "tier-card-badge soon";
+    } else if (t === currentUserTier) {
       card.classList.add("active");
       badge.textContent = "YOUR TIER";
       badge.className = "tier-card-badge current";
@@ -805,14 +803,6 @@ function closeUpgradePanel() {
   document.getElementById("upgrade-panel").classList.add("hidden");
 }
 
-function checkApplicationState() {
-  if (!currentUser) return;
-  const applied = localStorage.getItem("vx_applied_" + currentUser.id);
-  document.getElementById("apply-btn").hidden = !!applied;
-  document.getElementById("applied-btn").hidden = !applied;
-}
-
-
 function updateTierButton() {
   const btn = document.getElementById("tier-btn");
   if (btn) btn.textContent = "TIER " + currentUserTier;
@@ -822,7 +812,75 @@ function setFilter(filter, btn) {
   currentFilter = filter;
   document.querySelectorAll(".filter-btn").forEach(b => { b.classList.remove("active"); b.classList.add("inactive"); });
   btn.classList.add("active"); btn.classList.remove("inactive");
-  renderJournal();
+  if (filter === "sessions") { renderSessions(); } else { renderJournal(); }
+}
+
+async function persistConversation(userMsg, aiMsg) {
+  if (!currentUser) return;
+  await sb.from("conversations").insert({
+    user_id: currentUser.id,
+    session_id: currentSessionId,
+    user_message: userMsg,
+    ai_response: aiMsg
+  });
+}
+
+async function renderSessions() {
+  const list = document.getElementById("journal-list");
+  list.innerHTML = "";
+  const { data, error } = await sb.from("conversations").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: false });
+  if (error || !data || data.length === 0) {
+    const empty = document.createElement("div"); empty.className = "journal-empty";
+    const sym = document.createElement("div"); sym.className = "chat-empty-symbol"; sym.textContent = "✦";
+    const msg = document.createElement("div"); msg.style.cssText = "color:#444450;font-family:'Syne',sans-serif;font-size:13px;"; msg.textContent = "No sessions yet.";
+    const hint = document.createElement("div"); hint.style.cssText = "color:#222228;font-size:11px;"; hint.textContent = "Your conversations will appear here.";
+    empty.appendChild(sym); empty.appendChild(msg); empty.appendChild(hint); list.appendChild(empty);
+    return;
+  }
+  const sessionMap = new Map();
+  data.forEach(row => {
+    if (!sessionMap.has(row.session_id)) sessionMap.set(row.session_id, []);
+    sessionMap.get(row.session_id).push(row);
+  });
+  sessionMap.forEach((rows, sessionId) => {
+    rows.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    const first = rows[0];
+    const card = document.createElement("div"); card.className = "session-card";
+    const dateEl = document.createElement("div"); dateEl.className = "session-card-date";
+    dateEl.textContent = new Date(first.created_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    const preview = document.createElement("div"); preview.className = "session-card-preview";
+    preview.textContent = first.user_message || "";
+    const count = document.createElement("div"); count.className = "session-card-count";
+    count.textContent = rows.length + (rows.length === 1 ? " exchange" : " exchanges");
+    card.appendChild(dateEl); card.appendChild(preview); card.appendChild(count);
+    card.onclick = () => openSession(rows);
+    list.appendChild(card);
+  });
+}
+
+function openSession(rows) {
+  const modal = document.getElementById("session-modal");
+  const body = document.getElementById("session-modal-body");
+  const title = document.getElementById("session-modal-title");
+  body.innerHTML = "";
+  title.textContent = new Date(rows[0].created_at).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  rows.forEach(row => {
+    if (row.user_message) {
+      const wrap = document.createElement("div"); wrap.className = "session-msg-wrap user";
+      const bubble = document.createElement("div"); bubble.className = "session-bubble user";
+      bubble.textContent = row.user_message; wrap.appendChild(bubble); body.appendChild(wrap);
+    }
+    if (row.ai_response) {
+      const wrap = document.createElement("div"); wrap.className = "session-msg-wrap assistant";
+      const bubble = document.createElement("div"); bubble.className = "session-bubble assistant";
+      bubble.textContent = row.ai_response; wrap.appendChild(bubble); body.appendChild(wrap);
+    }
+  });
+  modal.classList.remove("hidden");
+}
+
+function closeSessionModal() {
+  document.getElementById("session-modal").classList.add("hidden");
 }
 
 function renderJournal() {
@@ -836,15 +894,7 @@ function renderJournal() {
     if (currentFilter === "completed") return t === "FG Made";
     return true;
   });
-  if (filtered.length === 0) {
-    list.innerHTML = "";
-    const empty = document.createElement("div"); empty.className = "journal-empty";
-    const sym = document.createElement("div"); sym.className = "chat-empty-symbol"; sym.textContent = "✦";
-    const msg = document.createElement("div"); msg.style.cssText = "color:#444450;font-family:'Syne',sans-serif;font-size:13px;"; msg.textContent = "Nothing captured yet.";
-    const hint = document.createElement("div"); hint.style.cssText = "color:#222228;font-size:11px;"; hint.textContent = "Entries are saved when you choose to.";
-    empty.appendChild(sym); empty.appendChild(msg); empty.appendChild(hint); list.appendChild(empty);
-    return;
-  }
+  if (filtered.length === 0) { list.innerHTML = `<div class="journal-empty"><div class="chat-empty-symbol">&#10022;</div><div style="color:#444450;font-family:'Syne',sans-serif;font-size:13px;">Nothing captured yet.</div><div style="color:#222228;font-size:11px;">Entries are saved when you choose to.</div></div>`; return; }
 
   filtered.forEach(e => {
     const t = e.log?.entry_type || ""; const l = e.log || {}; const c = ENTRY_COLORS[t] || {};
@@ -858,13 +908,7 @@ function renderJournal() {
     dateEl.textContent = new Date(e.timestamp).toLocaleDateString("en-US", {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
     top.appendChild(typeEl); top.appendChild(dateEl); card.appendChild(top);
 
-    function field(label, val) {
-      if (!val) return;
-      const row = document.createElement("div"); row.className = "field-row";
-      const labelEl = document.createElement("div"); labelEl.className = "field-label"; labelEl.textContent = label;
-      const valEl = document.createElement("div"); valEl.className = "field-val"; valEl.textContent = val;
-      row.appendChild(labelEl); row.appendChild(valEl); card.appendChild(row);
-    }
+    function field(label, val) { if (!val) return; const row = document.createElement("div"); row.className = "field-row"; row.innerHTML = "<div class='field-label'>" + label + "</div><div class='field-val'>" + val + "</div>"; card.appendChild(row); }
 
     if (["Red Journal","Black Journal","White Journal","Gold Journal"].includes(t)) { field("TRIGGER", l.emotional_trigger); field("EXPRESSION", l.unfiltered_expression); }
     if (t === "Call My Shot") { field("COMMITMENT", l.commitment_type); field("ACTION PLAN", l.action_plan); field("DEADLINE", l.deadline); const chip = document.createElement("span"); chip.className = "status-chip"; chip.style.cssText = "background:#0f1f1a;color:#10b981;"; chip.textContent = "● Open"; card.appendChild(chip); }
