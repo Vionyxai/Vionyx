@@ -105,6 +105,24 @@
     .tier-btn { font-size: 11px; color: var(--accent2); background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 20px; padding: 4px 12px; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.08em; transition: all 0.15s; }
     .tier-btn:hover { background: var(--accent); color: #fff; }
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; z-index: 999; }
+    .session-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; cursor: pointer; transition: border-color 0.15s; flex-shrink: 0; }
+    .session-card:hover { border-color: var(--border2); }
+    .session-card-date { font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .session-card-preview { font-size: 13px; color: var(--text2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .session-card-count { font-size: 10px; color: var(--text3); font-family: 'Syne', sans-serif; margin-top: 8px; }
+    .session-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+    .session-modal { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 680px; max-height: 82vh; display: flex; flex-direction: column; overflow: hidden; }
+    .session-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .session-modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: #fff; letter-spacing: 0.08em; }
+    .session-modal-close { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 20px; line-height: 1; padding: 2px 6px; transition: color 0.15s; }
+    .session-modal-close:hover { color: var(--text); }
+    .session-modal-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .session-msg-wrap { display: flex; flex-direction: column; }
+    .session-msg-wrap.user { align-items: flex-end; }
+    .session-msg-wrap.assistant { align-items: flex-start; }
+    .session-bubble { max-width: 75%; padding: 12px 16px; line-height: 1.65; font-size: 13.5px; white-space: pre-wrap; }
+    .session-bubble.user { background: var(--accent-dim); color: #ddd6fe; border-radius: 16px 16px 4px 16px; }
+    .session-bubble.assistant { background: var(--bg2); color: #c9c9d4; border: 1px solid var(--border); border-radius: 16px 16px 16px 4px; }
     .upgrade-modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 40px 36px; width: 520px; max-width: 92vw; display: flex; flex-direction: column; gap: 24px; max-height: 90vh; overflow-y: auto; }
     .upgrade-modal-header { display: flex; align-items: center; justify-content: space-between; }
     .upgrade-modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: 0.1em; color: #fff; }
@@ -191,9 +209,22 @@
         <button class="filter-btn inactive" onclick="setFilter('journals',this)">Journals</button>
         <button class="filter-btn inactive" onclick="setFilter('commitments',this)">Commitments</button>
         <button class="filter-btn inactive" onclick="setFilter('completed',this)">Completed</button>
+        <button class="filter-btn inactive" onclick="setFilter('sessions',this)">Sessions</button>
       </div>
       <div class="journal-list" id="journal-list"></div>
     </div>
+    </div><!-- end app-body -->
+
+    <div id="session-modal" class="session-modal-overlay hidden">
+      <div class="session-modal">
+        <div class="session-modal-header">
+          <div class="session-modal-title" id="session-modal-title"></div>
+          <button class="session-modal-close" onclick="closeSessionModal()">&#215;</button>
+        </div>
+        <div class="session-modal-body" id="session-modal-body"></div>
+      </div>
+    </div>
+
     <div class="app-footer">
       <a href="/legal/privacy/" target="_blank">Privacy Policy</a>
       <span>&#183;</span>
@@ -389,6 +420,7 @@ let currentUserStatus = "pending";
 let entries = [];
 let history = [];
 let sessionMessages = [];
+const currentSessionId = crypto.randomUUID();
 let pendingLog = null;
 let currentFilter = "all";
 let loading = false;
@@ -689,6 +721,7 @@ async function sendMessage() {
     history = [...outgoing, { role: "assistant", content: clean }];
     sessionMessages.push({ role: "user", text });
     sessionMessages.push({ role: "assistant", text: clean, log });
+    persistConversation(text, clean);
     saveSessionHistory();
     const isJournal = ["Red Journal","Black Journal","White Journal","Gold Journal"].includes(log?.entry_type);
     const isAutoLog = log && !isJournal && currentUserTier >= 2;
@@ -779,7 +812,75 @@ function setFilter(filter, btn) {
   currentFilter = filter;
   document.querySelectorAll(".filter-btn").forEach(b => { b.classList.remove("active"); b.classList.add("inactive"); });
   btn.classList.add("active"); btn.classList.remove("inactive");
-  renderJournal();
+  if (filter === "sessions") { renderSessions(); } else { renderJournal(); }
+}
+
+async function persistConversation(userMsg, aiMsg) {
+  if (!currentUser) return;
+  await sb.from("conversations").insert({
+    user_id: currentUser.id,
+    session_id: currentSessionId,
+    user_message: userMsg,
+    ai_response: aiMsg
+  });
+}
+
+async function renderSessions() {
+  const list = document.getElementById("journal-list");
+  list.innerHTML = "";
+  const { data, error } = await sb.from("conversations").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: false });
+  if (error || !data || data.length === 0) {
+    const empty = document.createElement("div"); empty.className = "journal-empty";
+    const sym = document.createElement("div"); sym.className = "chat-empty-symbol"; sym.textContent = "✦";
+    const msg = document.createElement("div"); msg.style.cssText = "color:#444450;font-family:'Syne',sans-serif;font-size:13px;"; msg.textContent = "No sessions yet.";
+    const hint = document.createElement("div"); hint.style.cssText = "color:#222228;font-size:11px;"; hint.textContent = "Your conversations will appear here.";
+    empty.appendChild(sym); empty.appendChild(msg); empty.appendChild(hint); list.appendChild(empty);
+    return;
+  }
+  const sessionMap = new Map();
+  data.forEach(row => {
+    if (!sessionMap.has(row.session_id)) sessionMap.set(row.session_id, []);
+    sessionMap.get(row.session_id).push(row);
+  });
+  sessionMap.forEach((rows, sessionId) => {
+    rows.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    const first = rows[0];
+    const card = document.createElement("div"); card.className = "session-card";
+    const dateEl = document.createElement("div"); dateEl.className = "session-card-date";
+    dateEl.textContent = new Date(first.created_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    const preview = document.createElement("div"); preview.className = "session-card-preview";
+    preview.textContent = first.user_message || "";
+    const count = document.createElement("div"); count.className = "session-card-count";
+    count.textContent = rows.length + (rows.length === 1 ? " exchange" : " exchanges");
+    card.appendChild(dateEl); card.appendChild(preview); card.appendChild(count);
+    card.onclick = () => openSession(rows);
+    list.appendChild(card);
+  });
+}
+
+function openSession(rows) {
+  const modal = document.getElementById("session-modal");
+  const body = document.getElementById("session-modal-body");
+  const title = document.getElementById("session-modal-title");
+  body.innerHTML = "";
+  title.textContent = new Date(rows[0].created_at).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  rows.forEach(row => {
+    if (row.user_message) {
+      const wrap = document.createElement("div"); wrap.className = "session-msg-wrap user";
+      const bubble = document.createElement("div"); bubble.className = "session-bubble user";
+      bubble.textContent = row.user_message; wrap.appendChild(bubble); body.appendChild(wrap);
+    }
+    if (row.ai_response) {
+      const wrap = document.createElement("div"); wrap.className = "session-msg-wrap assistant";
+      const bubble = document.createElement("div"); bubble.className = "session-bubble assistant";
+      bubble.textContent = row.ai_response; wrap.appendChild(bubble); body.appendChild(wrap);
+    }
+  });
+  modal.classList.remove("hidden");
+}
+
+function closeSessionModal() {
+  document.getElementById("session-modal").classList.add("hidden");
 }
 
 function renderJournal() {
