@@ -207,7 +207,8 @@
       <div class="status-eyebrow">Access Status</div>
       <div class="status-title">Application Under Review</div>
       <div class="status-body">Your account is pending approval. Once access is granted you will be able to begin your first session.</div>
-      <button class="status-btn" onclick="openUpgradePanel()">See what you&rsquo;re waiting for</button>
+      <button id="apply-btn" class="status-btn" onclick="window.location.href='/apply/'">Submit Application</button>
+      <button class="status-link-btn" onclick="openUpgradePanel()">See what you&rsquo;re waiting for</button>
       <button class="status-link-btn" onclick="signOut()">Sign out</button>
     </div>
   </div>
@@ -478,6 +479,7 @@ async function showApp() {
   }
   if (currentUserStatus !== "active") {
     document.getElementById("pending-screen").classList.remove("hidden");
+    checkApplicationState();
     return;
   }
   const app = document.getElementById("app-screen");
@@ -638,6 +640,19 @@ async function loadProfile() {
   } catch {
     currentUserTier = 1;
     currentUserStatus = "pending";
+  }
+}
+
+function checkApplicationState() {
+  if (!currentUser) return;
+  const btn = document.getElementById("apply-btn");
+  if (!btn) return;
+  if (localStorage.getItem("vx_applied_" + currentUser.id)) {
+    btn.textContent = "Application Submitted";
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+    btn.style.cursor = "default";
+    btn.onclick = null;
   }
 }
 
