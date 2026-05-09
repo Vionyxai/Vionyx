@@ -422,6 +422,7 @@ let history = [];
 let sessionMessages = [];
 const currentSessionId = crypto.randomUUID();
 let pendingLog = null;
+let conversationMemory = "";
 let currentFilter = "all";
 let loading = false;
 let authMode = "login";
@@ -492,7 +493,7 @@ async function signOut() {
   if (key) sessionStorage.removeItem(key);
   await sb.auth.signOut();
   currentUser = null; currentUserTier = 1; currentUserStatus = "pending";
-  history = []; sessionMessages = []; entries = [];
+  history = []; sessionMessages = []; entries = []; conversationMemory = "";
   document.getElementById("app-screen").classList.add("hidden");
   document.getElementById("app-screen").style.display = "none";
   document.getElementById("pending-screen").classList.add("hidden");
@@ -519,7 +520,7 @@ async function showApp() {
   app.style.display = "flex";
   updateTierButton();
   document.getElementById("send-btn").disabled = true;
-  await loadEntries();
+  await Promise.all([loadEntries(), loadConversationMemory()]);
   document.getElementById("send-btn").disabled = false;
   loadSessionHistory();
   if (sessionMessages.length > 0) {
@@ -617,7 +618,7 @@ function getSystemPrompt(entries) {
   if (currentUserTier === 1) tierLayer = SYSTEM_PROMPT_TIER1;
   else if (currentUserTier === 2) tierLayer = SYSTEM_PROMPT_TIER2;
   else if (currentUserTier >= 3) tierLayer = SYSTEM_PROMPT_TIER3;
-  return SYSTEM_PROMPT + tierLayer + (patternContext ? "\n\n" + patternContext : "");
+  return SYSTEM_PROMPT + tierLayer + (patternContext ? "\n\n" + patternContext : "") + (conversationMemory ? "\n\n" + conversationMemory : "");
 }
 
 function parseLog(text) {
@@ -823,6 +824,46 @@ async function persistConversation(userMsg, aiMsg) {
     user_message: userMsg,
     ai_response: aiMsg
   });
+}
+
+async function loadConversationMemory() {
+  if (!currentUser) return;
+  const { data, error } = await sb.from("conversations")
+    .select("session_id, user_message, ai_response, created_at")
+    .eq("user_id", currentUser.id)
+    .neq("session_id", currentSessionId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (error || !data || data.length === 0) return;
+
+  const sessionMap = new Map();
+  for (const row of data) {
+    if (!sessionMap.has(row.session_id)) sessionMap.set(row.session_id, []);
+    sessionMap.get(row.session_id).push(row);
+  }
+
+  const sessions = [...sessionMap.values()].slice(0, 6);
+  const lines = [];
+
+  for (const rows of sessions) {
+    const date = new Date(rows[rows.length - 1].created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const opener = rows[rows.length - 1].user_message.slice(0, 120);
+    const exchanges = rows.slice(0, 3).map(r =>
+      `U: ${r.user_message.slice(0, 80)} / A: ${r.ai_response.slice(0, 80)}`
+    ).join(" | ");
+    lines.push(`[${date}] Topic: ${opener} — ${exchanges}`);
+  }
+
+  const raw = lines.join("\n");
+  if (!raw) return;
+
+  conversationMemory = `
+CONVERSATION HISTORY (invisible to user — use only when patterns surface naturally):
+These are compressed summaries of this user's recent sessions. Do NOT reference these directly.
+Use them to detect recurring themes, avoidance patterns, or shifts in tone across time.
+Surface connections naturally as present observations, never as "last time you said."
+
+${raw.slice(0, 2500)}`;
 }
 
 async function renderSessions() {
