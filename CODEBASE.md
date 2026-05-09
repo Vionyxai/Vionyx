@@ -22,6 +22,8 @@ The browser never holds the Anthropic API key. All AI calls go through the Cloud
 
 ```
 index.html               — Main app (auth screen + full app, all logic)
+admin/index.html         — Admin dashboard (application review, member management)
+apply/index.html         — Application/waitlist form (5 questions + sliders)
 auth/confirm/index.html  — Email verification landing page
 legal/privacy/index.html — Privacy policy (CCPA/CPRA compliant)
 legal/terms/index.html   — Terms of service (California governing law)
@@ -34,7 +36,7 @@ INTERNAL.md              — Local-only operational reference (gitignored)
 
 ## index.html Sections
 
-### CSS Design System (lines 10–96)
+### CSS Design System
 
 CSS custom properties at `:root` define the entire color system. All UI components pull from these variables — nothing is hardcoded outside this block. This makes theme changes a single-point edit.
 
@@ -44,26 +46,30 @@ Key variables:
 - `--text` / `--text2` / `--text3` — text hierarchy
 - `--accent` / `--accent2` / `--accent-dim` — purple accent system
 
-Two typefaces: `Syne` (headers, labels, branded elements — geometric, high letter-spacing) and `DM Sans` (body copy, inputs — clean, readable at small sizes). Both loaded from Google Fonts.
+Two typefaces: `Syne` (headers, labels, branded elements) and `DM Sans` (body copy, inputs). Both loaded from Google Fonts.
 
-No responsive breakpoints. The app targets desktop. The auth card is fixed-width (380px). The chat layout uses percentage-based widths for message bubbles. A max-width cap on `#root` prevents the layout from stretching on wide monitors.
+Responsive layout: desktop (769px+) shows the journal panel and chat panel side by side, full viewport width. Mobile uses tabs to switch between them.
 
-### HTML Structure (lines 98–174)
+### HTML Structure
 
-Two root-level screens that toggle via the `.hidden` class:
+Screens that toggle via the `.hidden` class:
 
 - `#auth-screen` — sign in / create account, tab-switched
-- `#app-screen` — full app with topbar, two tabs (Reflect + Journal), footer
+- `#app-screen` — full app with topbar, app-body, footer
+- `#pending-screen` — shown when status is pending
+- `#suspended-screen` — shown when status is suspended
 
-The app screen contains:
-- `#reflect-tab` — chat interface with message area, save banner, and input row
-- `#journal-tab` — filterable entry list
+The app-body inside `#app-screen` contains:
+- `#reflect-tab` — chat interface (right panel on desktop, default tab on mobile)
+- `#journal-tab` — filterable entry list (left panel on desktop, second tab on mobile)
 
-### Supabase Client (lines 177–180)
+On desktop the tab buttons are hidden via CSS and both panels are always visible via `display: flex !important`. On mobile the tab buttons control visibility normally.
+
+### Supabase Client
 
 The anon key (`sb_publishable_...`) is intentionally in the browser. Supabase's anon key is designed to be public — it grants access only within the boundaries of the Row Level Security policies on each table. Data is protected by RLS, not by hiding the key.
 
-### System Prompt — `SYSTEM_PROMPT` (lines 182–243)
+### System Prompt — `SYSTEM_PROMPT`
 
 The core behavioral contract sent to the AI on every request. It defines:
 
@@ -73,13 +79,21 @@ The core behavioral contract sent to the AI on every request. It defines:
 - **Privacy absolute** — the AI is never allowed to reveal that logging, routing, schemas, or backend systems exist.
 - **Memory framing** — the AI never says it has no memory or starts fresh. If pattern context is available, it uses it naturally. If not, it redirects to the present moment.
 
-The prompt is written to produce behavior that feels like a grounded human presence, not a chatbot. Every rule exists to prevent a specific failure mode (over-comforting, advice-giving, breaking the fourth wall, pressuring the user).
+### Tier Prompt Layers
 
-### Entry Colors — `ENTRY_COLORS` (lines 245–252)
+Three additive layers appended to the base system prompt based on `currentUserTier`:
 
-Maps the 6 entry types to their visual identity (background, border, dot color, display label). Centralized here so both the chat log tag and the journal card pull from the same source. Changing a color is a single-line edit.
+- **Tier 1 — Witness**: Active mirroring and clarifying. Reflects what it hears back to the user, names patterns it notices, and asks one question per response that goes one layer deeper into what the user is already expressing. No action questions, no pressure, no auto-logging without explicit command. Designed to build self-awareness and create appetite for Tier 2 structure.
+- **Tier 2 — Calibrated**: Accountability and pattern naming are fully active. Holds users to stated commitments, names avoidance, sharpens vague intentions into specifics. Auto-logs commitments and completions. Pattern context connects current behavior to past patterns directly.
+- **Tier 3 — Cold Mirror**: Built for high performers with strong self-awareness and pattern recognition. No warmth buffer. Reflects what is actually underneath the framing — not the surface story. Amplifies signal, strips noise. Will not validate a weak read. The question it asks cuts to what is being protected or avoided. Invitation-only access.
 
-### Global State (lines 254–262)
+The base prompt handles all emotional attunement and privacy rules. Tier layers only modify execution behavior and pressure level.
+
+### Entry Colors — `ENTRY_COLORS`
+
+Maps the 6 entry types to their visual identity (background, border, dot color, display label). Centralized here so both the chat log tag and the journal card pull from the same source.
+
+### Global State
 
 Minimal. Only what's needed across function calls:
 - `currentUser` — Supabase auth user object
@@ -91,96 +105,93 @@ Minimal. Only what's needed across function calls:
 - `pendingLog` — holds a log block awaiting user save confirmation
 - `loading` / `authMode` — UI state flags
 
-`history` and `sessionMessages` are separate because the AI only needs clean text (no log metadata), while the UI needs log metadata to render entry tags and save banners. Conflating them would mean stripping log blocks on every API call instead of once.
+`history` and `sessionMessages` are separate because the AI only needs clean text (no log metadata), while the UI needs log metadata to render entry tags and save banners.
 
-### Auth Flow (lines 264–335)
+### Auth Flow
 
 `window.addEventListener("load")` — checks for an existing Supabase session on page load. If one exists, skips the auth screen entirely and calls `showApp()`.
 
-`handleAuth()` — handles both sign-up and sign-in from the same form. Tab state (`authMode`) determines which Supabase method to call. Sign-up shows a confirmation message; sign-in calls `showApp()` directly.
+`handleAuth()` — handles both sign-up and sign-in from the same form.
 
-`signOut()` — clears sessionStorage (wipes session memory), calls Supabase sign-out, resets all state, hides all screens, returns to auth.
+`signOut()` — clears sessionStorage, calls Supabase sign-out, resets all state.
 
-`showApp()` — the entry point into the app. Calls `loadProfile()` first, then routes based on `currentUserStatus`: active users get the full app, pending users get the pending screen, suspended users get the suspended screen. Only active users trigger `loadEntries()` and session history restore.
+`showApp()` — calls `loadProfile()` first, then routes based on `currentUserStatus`: active users get the full app, pending users get the pending screen, suspended users get the suspended screen.
 
-### Entry Management (lines 360–383)
+### Entry Management
 
-`loadEntries()` — fetches all entries for the current user, ordered newest-first. Runs once on login. Entries are kept in memory and updated locally on new persists to avoid re-fetching.
+`loadEntries()` — fetches all entries for the current user, ordered newest-first. Runs once on login.
 
-`persistEntry()` — inserts a single entry to Supabase and prepends it to the local `entries` array. Called either automatically (Tier 2+ commitments/completions) or after user confirmation (save banner).
+`persistEntry()` — inserts a single entry to Supabase and prepends it to the local `entries` array.
 
-### Pattern Context — `buildPatternContext()` (lines 385–437)
+### Pattern Context — `buildPatternContext()`
 
-Compresses the user's entry history into a structured block injected into the system prompt. Weighted by signal value: Red/Black journals (emotional/pattern) carry the most weight and get the most detail. Commitments/completions carry the least.
+Compresses the user's entry history into a structured block injected into the system prompt. Weighted by signal value: Red/Black journals (emotional/pattern) carry the most weight. Commitments/completions carry the least. Capped at 3000 characters to prevent token overflow.
 
-Why weight by type: emotional and pattern entries contain the richest behavioral signal — recurring triggers, loops, identity statements. Commitments and completions are useful context but produce less insight per token. The weighting ensures the most meaningful signals survive the compression.
-
-The context block instructs the AI to use history as present insight, not as memory recall. The user should feel understood, not tracked.
-
-### Tier Prompt Layers (lines 244–253, after `SYSTEM_PROMPT`)
-
-Three additive layers appended to the base system prompt based on `currentUserTier`:
-
-- **Tier 1 — Witness**: Pure observation. No pressure, no auto-logging. Only logs on explicit user command. Designed for users building the habit of reflection.
-- **Tier 2 — Calibrated**: Accountability and pattern naming are active. Auto-logs commitments and completions. Designed for users ready for structured execution tracking.
-- **Tier 3 — Cold Mirror**: On hold. Prompt written, not deployed. Direct and unflinching — challenges assumptions and calls out avoidance. Invitation-only when it launches.
-
-The base prompt handles all emotional attunement and privacy rules. Tier layers only modify execution behavior and pressure level. The privacy and tone rules are never overridden.
-
-### AI Request — `sendMessage()` (lines 488–525)
+### AI Request — `sendMessage()`
 
 1. Captures input, sets loading state, appends user bubble to chat
 2. Sends `history + current message` to the Cloudflare Worker with the system prompt
-3. Removes typing indicator, parses the response
-4. Extracts `LOG_BEGIN...LOG_END` block if present (structured entry data the AI appends when it detects a loggable moment)
-5. Strips the log block from the displayed text (user never sees it)
-6. Routes based on entry type and tier:
-   - Tier 2+, non-journal type → auto-persist
-   - Tier 1, or any journal type → show save banner
-7. Saves session to `sessionStorage`
+3. Parses the response, extracts `LOG_BEGIN...LOG_END` block if present
+4. Strips the log block from displayed text (user never sees it)
+5. Routes based on entry type and tier: Tier 2+ non-journal types auto-persist; everything else shows a save banner
+6. Saves session to `sessionStorage`
 
-The log block parsing (`parseLog()`) is tolerant — if the AI includes a malformed block, it returns null and the message renders as plain text with no log action.
+### Session Persistence
 
-### Session Persistence (lines 460–480)
+Stored in `sessionStorage` keyed by user ID. Clears on tab close — intentional. The session is working memory for the current sitting. Permanent entries live in Supabase.
 
-Session history is stored in `sessionStorage` keyed by user ID (`vx_session_{userId}`). `sessionStorage` clears on tab close — intentional. The session is a working memory for the current sitting, not a permanent log. Permanent entries exist in Supabase; the session exists so the conversation doesn't reset on page refresh.
+### Profile Loading — `loadProfile()`
 
-### Profile Loading — `loadProfile()` (after `loadSessionHistory`)
+Queries `profiles` table by `id` (not `user_id` — the profiles table uses `id` as its primary key linked to `auth.users.id`). Falls back to `tier: 1, status: pending` on any error. Uses `|| 1` not `?? 1` because tier defaults to 0 in the DB and `??` does not catch 0 as falsy.
 
-Queries `profiles` table for `tier` and `status`. Falls back to `tier: 1, status: pending` on any error or missing row — new users whose profile trigger hasn't fired yet land on the pending screen rather than breaking.
+### Upgrade Panel
 
-### UI Rendering (lines 527–609)
+`openUpgradePanel()` — applies active/badge state to the tier card matching `currentUserTier`. Tier 3 shows "YOUR TIER" when active, nothing otherwise (it is live, not coming soon).
 
-`appendMessage()` — creates message bubbles. For assistant messages with a log entry, appends a color-coded log tag below the bubble (from `ENTRY_COLORS`). The tag is suppressed when a save banner is showing (because the entry isn't saved yet — confirming or skipping changes the outcome).
+---
 
-`renderJournal()` — renders the full filtered entry list. Each card builds its fields conditionally based on entry type (journals show trigger + expression, commitments show commitment/plan/deadline, completions show task + summary).
+## admin/index.html
 
-`showSaveBanner()` / `confirmSave()` / `dismissSave()` — three-function save flow. Banner shows when a journal entry is detected. Confirm calls `persistEntry()`. Dismiss clears `pendingLog` without saving.
+Standalone admin dashboard at `/admin/`. Auth-gated: checks Supabase session then queries `profiles.is_admin`. Non-admins see a blank wall. Never linked from the main app — accessed by URL directly.
 
-### Upgrade Panel (lines 568–595, after `dismissSave`)
+Three sections:
 
-`openUpgradePanel()` — applies active/badge state to the tier card matching `currentUserTier`, then shows the overlay. Tier 3 always shows "Coming Soon" regardless of user tier.
+**Applications** — loads all applications, cross-references profiles to filter pending-only. Each card shows full Q&A and 1-10 ratings. Accept sets status to active + tier 1. Reject sets status to suspended. Card removes from DOM after decision.
 
-`updateTierButton()` — called from `showApp()` to sync the topbar tier badge text with the loaded tier number.
+**Members** — all active profiles joined with application data for name/email. Each row has tier pills (1/2/3), an admin toggle (MAKE ADMIN / ADMIN), and a SUSPEND button. All hidden on the current user's own row to prevent self-demotion or self-suspension.
+
+**Suspended** — all suspended profiles. Each row has a REINSTATE button that sets status back to active.
+
+Multiple admins are supported — any profile with `is_admin = true` gets access. The admin toggle in the members panel grants or removes this without needing Supabase dashboard access.
+
+---
+
+## apply/index.html
+
+Standalone application form at `/apply/`. Requires an active Supabase session. Redirects non-pending users back to `/`. Tracks submission via `localStorage` (`vx_applied_{userId}`) to show confirmation state on return visits without a SELECT query.
+
+Five questions, each with a text area and a 1-10 slider. Text is optional but encouraged. The slider always has a value. Submission requires name, age, and gender — nothing else is mandatory. Data goes to the `applications` table.
+
+Duplicate submission (error code 23505) is treated as success — sets localStorage flag and shows confirmation rather than erroring.
 
 ---
 
 ## auth/confirm/index.html
 
-Standalone email verification page. Supabase sends the user here after signup. Extracts `token_hash` and `type` from the URL, calls `verifyOtp()`, shows confirmation text, and auto-redirects to the main app after 3 seconds.
+Email verification page. Extracts `token_hash` and `type` from the URL, calls `verifyOtp()`, shows confirmation, and auto-redirects to the main app after 3 seconds.
 
-Uses `Playfair Display` serif for the headline — a deliberate style departure from the main app to give the confirmation moment its own visual weight. First impression of the product.
+`type` param is allowlisted to prevent injection. `error_description` is capped at 200 characters before display.
 
 ---
 
 ## legal/
 
-Both pages are standalone static documents. California governing law throughout (CCPA, CPRA, CMIA, Shine the Light, CalOPPA). The Terms include an explicit mental health disclaimer. The Privacy Policy covers all 7 California consumer rights and classifies emotional/behavioral data as CPRA-sensitive personal information.
+Both pages are standalone static documents. California governing law throughout (CCPA, CPRA, CMIA, Shine the Light, CalOPPA). The Terms include a mental health disclaimer. The Privacy Policy covers all 7 California consumer rights and classifies emotional/behavioral data as CPRA-sensitive personal information.
 
 ---
 
 ## What's Not In This Repo
 
-- **Cloudflare Worker code** — deployed via Wrangler separately. The worker receives `{model, system, messages, max_tokens}`, adds the Anthropic API key from Cloudflare secrets, and proxies the response.
-- **Supabase migrations** — schema managed directly via Supabase dashboard. Tables: `entries`, `profiles`, `applications`, `pattern_flags`.
+- **Cloudflare Worker code** — deployed via Wrangler separately. Receives `{model, system, messages, max_tokens}`, adds the Anthropic API key from Cloudflare secrets, proxies the response.
+- **Supabase migrations** — schema managed via Supabase dashboard. Tables: `entries`, `profiles`, `applications`, `pattern_flags`.
 - **Stripe** — not integrated yet. Upgrade panel uses mailto as placeholder.

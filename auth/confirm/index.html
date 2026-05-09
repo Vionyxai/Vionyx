@@ -54,11 +54,13 @@
       const hashParams = new URLSearchParams(window.location.hash.replace("#", "?").slice(1));
 
       const token_hash = params.get("token_hash") || params.get("token") || hashParams.get("token_hash");
-      const type = params.get("type") || hashParams.get("type") || "email";
+      const rawType = params.get("type") || hashParams.get("type") || "email";
+      const ALLOWED_TYPES = ["email", "signup", "recovery", "invite", "email_change"];
+      const type = ALLOWED_TYPES.includes(rawType) ? rawType : "email";
       const errorDesc = params.get("error_description") || hashParams.get("error_description");
 
       if (errorDesc) {
-        status.textContent = errorDesc;
+        status.textContent = String(errorDesc).slice(0, 200);
         status.className = "status error";
         cta.style.display = "inline-block";
         return;
@@ -86,7 +88,7 @@
         cta.style.display = "inline-block";
 
         setTimeout(() => {
-          window.location.href = "https://vionyx-xi.vercel.app";
+          window.location.href = window.location.origin;
         }, 3000);
 
       } catch (e) {
