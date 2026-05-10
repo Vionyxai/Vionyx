@@ -1,12 +1,9 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "routes": [
-    { "src": "/admin", "dest": "/admin/index.html" },
-    { "src": "/apply", "dest": "/apply/index.html" },
-    { "src": "/auth/confirm", "dest": "/auth/confirm/index.html" },
-    { "src": "/legal/privacy", "dest": "/legal/privacy/index.html" },
-    { "src": "/legal/terms", "dest": "/legal/terms/index.html" },
-    { "src": "/", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/apply", "destination": "/apply/index.html" },
+    { "source": "/auth/confirm", "destination": "/auth/confirm/index.html" },
+    { "source": "/legal/privacy", "destination": "/legal/privacy/index.html" },
+    { "source": "/legal/terms", "destination": "/legal/terms/index.html" }
   ]
 }
