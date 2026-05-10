@@ -430,6 +430,7 @@ let authMode = "login";
 window.addEventListener("load", async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (session) { currentUser = session.user; showApp(); }
+  else { document.getElementById("auth-screen").classList.remove("hidden"); }
 });
 
 function switchAuthTab(mode) {
