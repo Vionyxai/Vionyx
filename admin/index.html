@@ -315,7 +315,7 @@
     const { data: appData } = await sb.from('applications').select('email, name').eq('user_id', userId).single();
     if (appData?.email) {
       const accepted = decision === 'accepted';
-      sb.functions.invoke('send-email', {
+      sb.functions.invoke('rapid-responder', {
         body: {
           to: appData.email,
           subject: accepted ? "You've been granted access to Vionyx" : "Your Vionyx application",

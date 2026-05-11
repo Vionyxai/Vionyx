@@ -506,7 +506,7 @@
 
       localStorage.setItem("vx_applied_" + currentUser.id, "true");
 
-      sb.functions.invoke("send-email", {
+      sb.functions.invoke("rapid-responder", {
         body: {
           to: "access@vionyx.ai",
           subject: "New Vionyx Application",
