@@ -310,7 +310,21 @@
     document.getElementById('app-count').textContent = remaining + ' pending';
     if (remaining === 0) renderEmpty(document.getElementById('applications-list'), 'No applications to review yet.');
     if (decision === 'accepted') await Promise.all([loadMembers(), loadSuspended()]);
-  if (decision === 'rejected') await loadSuspended();
+    if (decision === 'rejected') await loadSuspended();
+
+    const { data: appData } = await sb.from('applications').select('email, name').eq('user_id', userId).single();
+    if (appData?.email) {
+      const accepted = decision === 'accepted';
+      sb.functions.invoke('rapid-responder', {
+        body: {
+          to: appData.email,
+          subject: accepted ? "You've been granted access to Vionyx" : "Your Vionyx application",
+          html: accepted
+            ? `<p>Hi ${appData.name || 'there'},</p><p>Your application has been approved. You can sign in and begin your first session now.</p><p><a href="https://vionyx-xi.vercel.app">Open Vionyx →</a></p>`
+            : `<p>Hi ${appData.name || 'there'},</p><p>Thank you for applying to Vionyx. We're not moving forward at this time. You're welcome to reapply in the future.</p>`
+        }
+      });
+    }
   }
 
   // ── Members ───────────────────────────────────────────────────

@@ -505,6 +505,15 @@
       }
 
       localStorage.setItem("vx_applied_" + currentUser.id, "true");
+
+      sb.functions.invoke("rapid-responder", {
+        body: {
+          to: "vionyx2444@gmail.com",
+          subject: "New Vionyx Application",
+          html: `<p><strong>${name}</strong> (${currentUser.email}) just submitted an application.</p><p><a href="https://vionyx-xi.vercel.app/admin">Review in admin dashboard →</a></p>`
+        }
+      });
+
       showConfirmation();
     }
 
