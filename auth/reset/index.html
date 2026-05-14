@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIONYX — Reset Password</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; background: #0a0a0a; color: #fff; font-family: 'DM Sans', sans-serif; }
+    .page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px; }
+    .card { background: #111; border: 1px solid #222; border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; letter-spacing: 0.22em; color: #fff; text-align: center; }
+    .sub { font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; letter-spacing: 0.1em; margin-top: -8px; }
+    .headline { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: #fff; text-align: center; }
+    .input { background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 10px; padding: 12px 16px; color: #fff; font-size: 14px; font-family: inherit; outline: none; width: 100%; transition: border-color 0.2s; }
+    .input:focus { border-color: #7c6aff; }
+    .btn { padding: 13px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; font-size: 12px; font-family: 'Syne', sans-serif; background: #7c6aff; color: #fff; letter-spacing: 0.1em; transition: background 0.2s; }
+    .btn:hover { background: #9b8dff; }
+    .btn:disabled { opacity: 0.5; cursor: default; }
+    .error { font-size: 12px; color: #ef4444; text-align: center; background: #2d0f0f; border: 1px solid #5c1f1f; border-radius: 8px; padding: 8px 12px; }
+    .msg { font-size: 12px; color: #10b981; text-align: center; background: #0f1f1a; border: 1px solid #1a4a35; border-radius: 8px; padding: 8px 12px; }
+    .back { font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; text-decoration: underline; cursor: pointer; background: none; border: none; font-family: inherit; }
+    .back:hover { color: rgba(255,255,255,0.6); }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <div class="logo">VIONYX</div>
+      <div class="sub">STATE STABILIZATION SYSTEM</div>
+
+      <div id="loading-state">
+        <div class="headline" style="color:rgba(255,255,255,0.4); font-size:13px; text-align:center;">Verifying reset link...</div>
+      </div>
+
+      <div id="form-state" class="hidden">
+        <div class="headline">Set new password</div>
+        <input class="input" id="new-password" type="password" placeholder="New password" />
+        <input class="input" id="confirm-password" type="password" placeholder="Confirm new password" />
+        <div id="form-error" class="error hidden"></div>
+        <button class="btn" id="submit-btn" onclick="updatePassword()">UPDATE PASSWORD</button>
+      </div>
+
+      <div id="success-state" class="hidden">
+        <div class="msg">Password updated. Redirecting...</div>
+      </div>
+
+      <div id="error-state" class="hidden">
+        <div id="error-msg" class="error"></div>
+        <a class="back" href="/">← Back to sign in</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://msyyhgeuqnhksyyqhvsr.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_XB2lbu1MNRx_TnnetQnSGQ_OwJjXmPR";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function show(id) {
+      ["loading-state","form-state","success-state","error-state"].forEach(s => {
+        document.getElementById(s).classList.toggle("hidden", s !== id);
+      });
+    }
+
+    function showError(msg) {
+      document.getElementById("error-msg").textContent = msg;
+      show("error-state");
+    }
+
+    async function updatePassword() {
+      const pass = document.getElementById("new-password").value;
+      const confirm = document.getElementById("confirm-password").value;
+      const err = document.getElementById("form-error");
+      const btn = document.getElementById("submit-btn");
+
+      err.classList.add("hidden");
+      if (pass.length < 6) { err.textContent = "Password must be at least 6 characters."; err.classList.remove("hidden"); return; }
+      if (pass !== confirm) { err.textContent = "Passwords do not match."; err.classList.remove("hidden"); return; }
+
+      btn.disabled = true;
+      btn.textContent = "...";
+      const { error } = await sb.auth.updateUser({ password: pass });
+      if (error) {
+        err.textContent = error.message;
+        err.classList.remove("hidden");
+        btn.disabled = false;
+        btn.textContent = "UPDATE PASSWORD";
+        return;
+      }
+
+      show("success-state");
+      setTimeout(() => { window.location.href = "/"; }, 2000);
+    }
+
+    window.addEventListener("load", async () => {
+      const params = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace("#", "?").slice(1));
+      const token_hash = params.get("token_hash") || hashParams.get("token_hash");
+      const type = params.get("type") || hashParams.get("type") || "recovery";
+      const errorDesc = params.get("error_description") || hashParams.get("error_description");
+
+      if (errorDesc) { showError(String(errorDesc).slice(0, 200)); return; }
+
+      if (token_hash) {
+        const { error } = await sb.auth.verifyOtp({ token_hash, type });
+        if (error) { showError(error.message); return; }
+        show("form-state");
+        return;
+      }
+
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) { show("form-state"); return; }
+
+      showError("Invalid or expired reset link. Request a new one.");
+    });
+  </script>
+</body>
+</html>
