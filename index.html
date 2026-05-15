@@ -32,6 +32,12 @@
     .auth-btn:disabled { opacity: 0.5; cursor: default; }
     .auth-error { font-size: 12px; color: #ef4444; text-align: center; background: #2d0f0f; border: 1px solid #5c1f1f; border-radius: 8px; padding: 8px 12px; }
     .auth-msg { font-size: 12px; color: #10b981; text-align: center; background: #0f1f1a; border: 1px solid #1a4a35; border-radius: 8px; padding: 8px 12px; }
+    .crisis-notice { background: #1a0a0a; border: 1px solid #7c1f1f; border-radius: 14px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; margin: 8px 0; }
+    .crisis-notice-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: #ef4444; letter-spacing: 0.08em; }
+    .crisis-notice-body { font-size: 13px; color: #c0a0a0; line-height: 1.65; }
+    .crisis-resources { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #5c1f1f; padding-top: 14px; }
+    .crisis-resource { font-size: 12px; color: var(--text2); line-height: 1.5; }
+    .crisis-resource strong { color: #fff; }
     .auth-forgot { font-size: 11px; color: var(--text2); text-align: right; cursor: pointer; letter-spacing: 0.04em; text-decoration: underline; background: none; border: none; padding: 0; font-family: inherit; }
     .auth-forgot:hover { color: var(--text); }
     .auth-back { font-size: 11px; color: var(--text2); text-align: center; cursor: pointer; letter-spacing: 0.04em; text-decoration: underline; background: none; border: none; padding: 0; font-family: inherit; }
@@ -351,6 +357,52 @@ let currentUserStatus = "pending";
 let entries = [];
 let history = [];
 let sessionMessages = [];
+let sessionPatternCounts = {};
+let sessionFlaggedTypes = new Set();
+
+const CRISIS_PATTERNS = [
+  "kill myself", "killing myself", "want to die", "wants to die",
+  "suicide", "suicidal", "end my life", "ending my life",
+  "self harm", "self-harm", "selfharm", "hurt myself", "hurting myself",
+  "cutting myself", "cut myself", "overdose", "od myself",
+  "don't want to live", "dont want to live", "no reason to live",
+  "better off dead", "better off without me", "wish i was dead",
+  "wish i were dead", "not want to be here", "don't want to be here",
+  "harm myself", "harming myself", "take my life", "taking my life"
+];
+
+function detectCrisis(text) {
+  const lower = text.toLowerCase();
+  return CRISIS_PATTERNS.some(p => lower.includes(p));
+}
+
+async function logPatternFlag(flagType, triggerText) {
+  if (!currentUser) return;
+  try {
+    await sb.from("pattern_flags").insert({
+      user_id: currentUser.id,
+      flag_type: flagType,
+      trigger_text: triggerText.slice(0, 300),
+    });
+  } catch (_) {}
+}
+
+function trackPattern(entryType) {
+  const zoneMap = {
+    "Red Journal": "emotional_flood",
+    "Black Journal": "avoidance_loop",
+    "White Journal": "organizing_loop",
+    "Gold Journal": "identity_shift",
+    "Call My Shot": "commitment_pattern",
+  };
+  const flagType = zoneMap[entryType];
+  if (!flagType) return;
+  sessionPatternCounts[flagType] = (sessionPatternCounts[flagType] || 0) + 1;
+  if (sessionPatternCounts[flagType] >= 3 && !sessionFlaggedTypes.has(flagType)) {
+    sessionFlaggedTypes.add(flagType);
+    logPatternFlag(flagType, `Repeated ${entryType} — ${sessionPatternCounts[flagType]} times this session`);
+  }
+}
 const currentSessionId = crypto.randomUUID();
 let pendingLog = null;
 let conversationMemory = "";
@@ -618,6 +670,15 @@ async function sendMessage() {
   setLoading(true);
   hideChatEmpty();
   appendMessage("user", text);
+
+  if (detectCrisis(text)) {
+    appendCrisisNotice();
+    logPatternFlag("crisis", text);
+    setLoading(false);
+    input.focus();
+    return;
+  }
+
   const outgoing = [...history, { role: "user", content: text }];
   const typingId = appendTyping();
 
@@ -638,6 +699,7 @@ async function sendMessage() {
     sessionMessages.push({ role: "assistant", text: clean, log });
     persistConversation(text, clean);
     saveSessionHistory();
+    if (log?.entry_type) trackPattern(log.entry_type);
     const isJournal = ["Red Journal","Black Journal","White Journal","Gold Journal"].includes(log?.entry_type);
     const isAutoLog = log && !isJournal && currentUserTier >= 2;
     const showBanner = !!log && (isJournal || !isAutoLog);
@@ -648,6 +710,26 @@ async function sendMessage() {
 
   setLoading(false);
   input.focus();
+}
+
+function appendCrisisNotice() {
+  const chat = document.getElementById("chat-area");
+  const wrap = document.createElement("div");
+  wrap.className = "msg-wrap assistant";
+  const notice = document.createElement("div");
+  notice.className = "crisis-notice";
+  notice.innerHTML = `
+    <div class="crisis-notice-title">A moment.</div>
+    <div class="crisis-notice-body">What you're carrying right now is more than I'm built to hold with you. Please reach out to someone who can really be there.</div>
+    <div class="crisis-resources">
+      <div class="crisis-resource"><strong>988 Suicide &amp; Crisis Lifeline</strong> — call or text <strong>988</strong> (US)</div>
+      <div class="crisis-resource"><strong>Crisis Text Line</strong> — text HOME to <strong>741741</strong></div>
+      <div class="crisis-resource"><strong>International resources</strong> — findahelpline.com</div>
+    </div>
+  `;
+  wrap.appendChild(notice);
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
 }
 
 function hideChatEmpty() { const el = document.getElementById("chat-empty"); if (el) el.style.display = "none"; }
