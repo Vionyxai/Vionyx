@@ -95,6 +95,22 @@
     .admin-toggle-btn:disabled { opacity: 0.35; cursor: default; }
     .member-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 
+    /* Flag cards */
+    .flag-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; }
+    .flag-card.crisis { border-color: #7c1f1f; background: #120808; }
+    .flag-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .flag-type { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border2); color: var(--text3); }
+    .flag-type.crisis { background: #2d0f0f; border-color: #7c1f1f; color: #ef4444; }
+    .flag-type.emotional_flood { background: #2d1515; border-color: #5c2323; color: #f87171; }
+    .flag-type.avoidance_loop { background: #151515; border-color: #333; color: #9090a0; }
+    .flag-type.commitment_pattern { background: #0f1f1a; border-color: #1a4a35; color: #10b981; }
+    .flag-type.organizing_loop { background: #1a1a2a; border-color: #2d2d4a; color: #818cf8; }
+    .flag-type.identity_shift { background: #1f1a0a; border-color: #4a3a0a; color: #f59e0b; }
+    .flag-meta { font-size: 12px; color: var(--text2); }
+    .flag-trigger { font-size: 12px; color: var(--text3); line-height: 1.5; font-style: italic; border-left: 2px solid var(--border2); padding-left: 12px; }
+    .flag-resolve-btn { align-self: flex-end; font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; background: transparent; border: 1px solid var(--border2); border-radius: 20px; padding: 4px 12px; color: var(--text3); cursor: pointer; transition: all 0.15s; }
+    .flag-resolve-btn:hover { border-color: var(--border); color: var(--text2); }
+
     @media (max-width: 520px) {
       .admin-topbar { padding: 20px 16px 0; }
       .app-card { padding: 20px; }
@@ -149,6 +165,14 @@
       </div>
       <div class="member-list" id="suspended-list"></div>
     </section>
+
+    <section class="admin-section">
+      <div class="section-header">
+        <div class="section-title">Pattern Flags</div>
+        <div class="section-count" id="flags-count"></div>
+      </div>
+      <div class="card-list" id="flags-list"></div>
+    </section>
   </div>
 </div>
 
@@ -185,7 +209,7 @@
     const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', currentUser.id).single();
     if (!profile?.is_admin) { hide('loading-screen'); show('not-admin-screen'); return; }
 
-    await Promise.all([loadApplications(), loadMembers(), loadSuspended()]);
+    await Promise.all([loadApplications(), loadMembers(), loadSuspended(), loadFlags()]);
     hide('loading-screen');
     show('admin-screen');
   });
@@ -495,6 +519,63 @@
     const sym = document.createElement('div'); sym.className = 'empty-symbol'; sym.textContent = '✦';
     const txt = document.createElement('div'); txt.className = 'empty-text'; txt.textContent = msg;
     wrap.appendChild(sym); wrap.appendChild(txt); container.appendChild(wrap);
+  }
+
+  async function loadFlags() {
+    const list = document.getElementById('flags-list');
+    const countEl = document.getElementById('flags-count');
+    const { data: flags, error } = await sb
+      .from('pattern_flags')
+      .select('id, user_id, flag_type, trigger_text, created_at, resolved')
+      .eq('resolved', false)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error || !flags) { renderEmpty(list, 'Could not load flags.'); return; }
+    countEl.textContent = flags.length ? flags.length + ' unresolved' : '';
+    if (flags.length === 0) { renderEmpty(list, 'No active flags.'); return; }
+
+    const userIds = [...new Set(flags.map(f => f.user_id))];
+    const { data: profiles } = await sb.from('profiles').select('id, email').in('id', userIds);
+    const emailMap = {};
+    (profiles || []).forEach(p => { emailMap[p.id] = p.email; });
+
+    flags.forEach(flag => {
+      const isCrisis = flag.flag_type === 'crisis';
+      const card = document.createElement('div');
+      card.className = 'flag-card' + (isCrisis ? ' crisis' : '');
+
+      const header = document.createElement('div'); header.className = 'flag-header';
+      const typeEl = document.createElement('span');
+      typeEl.className = 'flag-type ' + flag.flag_type;
+      typeEl.textContent = flag.flag_type.replace(/_/g, ' ').toUpperCase();
+      const date = document.createElement('span');
+      date.style.cssText = 'font-size:10px;color:var(--text3);font-family:Syne,sans-serif;';
+      date.textContent = new Date(flag.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      header.appendChild(typeEl); header.appendChild(date);
+
+      const meta = document.createElement('div'); meta.className = 'flag-meta';
+      meta.textContent = emailMap[flag.user_id] || flag.user_id;
+
+      const trigger = document.createElement('div'); trigger.className = 'flag-trigger';
+      trigger.textContent = flag.trigger_text || '—';
+
+      const resolveBtn = document.createElement('button'); resolveBtn.className = 'flag-resolve-btn';
+      resolveBtn.textContent = 'MARK RESOLVED';
+      resolveBtn.onclick = async () => {
+        resolveBtn.disabled = true; resolveBtn.textContent = '...';
+        await sb.from('pattern_flags').update({ resolved: true }).eq('id', flag.id);
+        card.remove();
+        const remaining = list.querySelectorAll('.flag-card').length;
+        countEl.textContent = remaining ? remaining + ' unresolved' : '';
+        if (remaining === 0) renderEmpty(list, 'No active flags.');
+      };
+
+      card.appendChild(header);
+      card.appendChild(meta);
+      if (flag.trigger_text) card.appendChild(trigger);
+      card.appendChild(resolveBtn);
+      list.appendChild(card);
+    });
   }
 </script>
 </body>
