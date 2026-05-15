@@ -153,9 +153,12 @@
     .tier-card-badge.current { background: var(--accent-dim); color: var(--accent2); border: 1px solid var(--accent); }
     .tier-card-badge.soon { background: #1a1a2a; color: var(--text3); border: 1px solid var(--border2); }
     .tier-card-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
-    .upgrade-cta { font-size: 12px; color: var(--text2); line-height: 1.7; text-align: center; padding: 16px; background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; }
-    .upgrade-cta a { color: var(--accent2); text-decoration: none; }
-    .upgrade-cta a:hover { text-decoration: underline; }
+    .tier-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+    .tier-card-price { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text2); }
+    .tier-upgrade-btn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; padding: 6px 16px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent-dim); color: var(--accent2); cursor: pointer; transition: all 0.15s; }
+    .tier-upgrade-btn:hover { background: var(--accent); color: #fff; }
+    .tier-upgrade-btn:disabled { opacity: 0.4; cursor: default; }
+    .tier-upgrade-btn.current-plan { border-color: var(--border2); background: transparent; color: var(--text3); cursor: default; }
   </style>
 </head>
 <body>
@@ -292,6 +295,10 @@
             <span class="tier-card-badge" id="tier-badge-1"></span>
           </div>
           <div class="tier-card-desc">Mirror and clarify. Vionyx reflects what it hears, names what it notices, and asks one question that helps you go deeper into what you are already seeing. No pressure, no pushing, no auto-logging.</div>
+          <div class="tier-card-footer">
+            <div class="tier-card-price">$15 / mo</div>
+            <button class="tier-upgrade-btn" id="upgrade-btn-1" onclick="checkoutTier(1)">Upgrade</button>
+          </div>
         </div>
         <div class="tier-card" id="tier-card-2">
           <div class="tier-card-header">
@@ -299,16 +306,24 @@
             <span class="tier-card-badge" id="tier-badge-2"></span>
           </div>
           <div class="tier-card-desc">Pattern identification and commitment accountability. The system applies pressure when useful, names avoidance when it sees it, and auto-logs commitments and completions.</div>
+          <div class="tier-card-footer">
+            <div class="tier-card-price">$25 / mo</div>
+            <button class="tier-upgrade-btn" id="upgrade-btn-2" onclick="checkoutTier(2)">Upgrade</button>
+          </div>
         </div>
         <div class="tier-card" id="tier-card-3">
           <div class="tier-card-header">
             <div class="tier-card-name">TIER 3 &mdash; COLD MIRROR</div>
-            <span class="tier-card-badge soon" id="tier-badge-3">COMING SOON</span>
+            <span class="tier-card-badge" id="tier-badge-3"></span>
           </div>
-          <div class="tier-card-desc">For high performers and people with real pattern recognition. No structure, no hand-holding — just a precise reflection of what is operating underneath the noise. Amplifies signal. Strips everything else. By invitation only.</div>
+          <div class="tier-card-desc">For high performers and people with real pattern recognition. No structure, no hand-holding — just a precise reflection of what is operating underneath the noise. Amplifies signal. Strips everything else.</div>
+          <div class="tier-card-footer">
+            <div class="tier-card-price">$30 / mo</div>
+            <button class="tier-upgrade-btn" id="upgrade-btn-3" onclick="checkoutTier(3)">Upgrade</button>
+          </div>
         </div>
       </div>
-      <div class="upgrade-cta">To request access or upgrade your tier, email <a href="mailto:access@vionyx.ai">access@vionyx.ai</a></div>
+      <div id="upgrade-error" class="auth-error hidden"></div>
     </div>
   </div>
 
@@ -345,7 +360,14 @@ let authMode = "login";
 
 window.addEventListener("load", async () => {
   const { data: { session } } = await sb.auth.getSession();
-  if (session) { currentUser = session.user; showApp(); }
+  if (session) {
+    currentUser = session.user;
+    await showApp();
+    if (new URLSearchParams(window.location.search).get("upgraded") === "1") {
+      history.replaceState({}, "", "/");
+      showAuthMsg("Payment successful. Your tier will activate within a few seconds — refresh if it doesn't update.");
+    }
+  }
   else { document.getElementById("auth-screen").classList.remove("hidden"); }
 });
 
@@ -671,25 +693,58 @@ function hideSaveBanner() { document.getElementById("save-banner").classList.add
 async function confirmSave() { if (!pendingLog) return; await persistEntry({ timestamp: new Date().toISOString(), userMsg: pendingLog.userMsg, aiResponse: pendingLog.aiResponse, log: pendingLog.log }); pendingLog = null; hideSaveBanner(); }
 function dismissSave() { pendingLog = null; hideSaveBanner(); }
 
+const STRIPE_PRICE_IDS = {
+  1: "price_1TXHMLPNJEiOMPzSWmtb75Rg",
+  2: "price_1TXHNyPNJEiOMPzSCmY5NTX9",
+  3: "price_1TXHOcPNJEiOMPzSXWjmbD9L",
+};
+
 function openUpgradePanel() {
   [1, 2, 3].forEach(t => {
     const card = document.getElementById("tier-card-" + t);
     const badge = document.getElementById("tier-badge-" + t);
-    if (t === 3) {
-      card.classList.remove("active");
-      badge.textContent = "COMING SOON";
-      badge.className = "tier-card-badge soon";
-    } else if (t === currentUserTier) {
+    const btn = document.getElementById("upgrade-btn-" + t);
+    if (t === currentUserTier) {
       card.classList.add("active");
       badge.textContent = "YOUR TIER";
       badge.className = "tier-card-badge current";
+      btn.textContent = "Current Plan";
+      btn.className = "tier-upgrade-btn current-plan";
+      btn.disabled = true;
     } else {
       card.classList.remove("active");
       badge.textContent = "";
       badge.className = "tier-card-badge";
+      btn.textContent = "Upgrade";
+      btn.className = "tier-upgrade-btn";
+      btn.disabled = false;
     }
   });
+  document.getElementById("upgrade-error").classList.add("hidden");
   document.getElementById("upgrade-panel").classList.remove("hidden");
+}
+
+async function checkoutTier(tier) {
+  const btn = document.getElementById("upgrade-btn-" + tier);
+  const errEl = document.getElementById("upgrade-error");
+  btn.disabled = true;
+  btn.textContent = "...";
+  errEl.classList.add("hidden");
+  try {
+    const res = await fetch(WORKER_URL + "/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ priceId: STRIPE_PRICE_IDS[tier], userId: currentUser.id, email: currentUser.email }),
+    });
+    const data = await res.json();
+    if (data.url) { window.location.href = data.url; }
+    else { throw new Error(data.error || "Checkout failed"); }
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove("hidden");
+    btn.disabled = false;
+    btn.textContent = "Upgrade";
+  }
 }
 
 function closeUpgradePanel() {
