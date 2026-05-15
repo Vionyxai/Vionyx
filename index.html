@@ -32,6 +32,10 @@
     .auth-btn:disabled { opacity: 0.5; cursor: default; }
     .auth-error { font-size: 12px; color: #ef4444; text-align: center; background: #2d0f0f; border: 1px solid #5c1f1f; border-radius: 8px; padding: 8px 12px; }
     .auth-msg { font-size: 12px; color: #10b981; text-align: center; background: #0f1f1a; border: 1px solid #1a4a35; border-radius: 8px; padding: 8px 12px; }
+    .auth-forgot { font-size: 11px; color: var(--text2); text-align: right; cursor: pointer; letter-spacing: 0.04em; text-decoration: underline; background: none; border: none; padding: 0; font-family: inherit; }
+    .auth-forgot:hover { color: var(--text); }
+    .auth-back { font-size: 11px; color: var(--text2); text-align: center; cursor: pointer; letter-spacing: 0.04em; text-decoration: underline; background: none; border: none; padding: 0; font-family: inherit; }
+    .auth-back:hover { color: var(--text); }
     .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 54px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .topbar-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.2em; color: #fff; }
     .topbar-right { display: flex; align-items: center; gap: 12px; }
@@ -166,14 +170,22 @@
         <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')" type="button">Create Account</button>
       </div>
       <input class="auth-input" id="auth-email" type="email" placeholder="Email address" />
-      <input class="auth-input" id="auth-password" type="password" placeholder="Password" />
+      <div id="auth-password-wrap">
+        <input class="auth-input" id="auth-password" type="password" placeholder="Password" style="width:100%;" />
+      </div>
+      <div id="auth-forgot-wrap" style="margin-top:-8px;">
+        <button class="auth-forgot" onclick="switchToReset()">Forgot password?</button>
+      </div>
       <div id="auth-confirm-wrap" class="hidden">
         <input class="auth-input" id="auth-confirm" type="password" placeholder="Confirm password" style="width:100%;" />
       </div>
       <div id="auth-error" class="auth-error hidden"></div>
       <div id="auth-msg" class="auth-msg hidden"></div>
       <button class="auth-btn" id="auth-submit" onclick="handleAuth()">ENTER SESSION</button>
-      <div class="auth-legal">By continuing, you agree to our <a href="/legal/terms/" target="_blank">Terms of Service</a> and <a href="/legal/privacy/" target="_blank">Privacy Policy</a>.</div>
+      <div id="auth-back-wrap" class="hidden" style="text-align:center;">
+        <button class="auth-back" onclick="switchAuthTab('login')">← Back to sign in</button>
+      </div>
+      <div id="auth-legal" class="auth-legal">By continuing, you agree to our <a href="/legal/terms/" target="_blank">Terms of Service</a> and <a href="/legal/privacy/" target="_blank">Privacy Policy</a>.</div>
     </div>
   </div>
 
@@ -451,7 +463,24 @@ function switchAuthTab(mode) {
   document.getElementById("tab-login").classList.toggle("active", mode === "login");
   document.getElementById("tab-signup").classList.toggle("active", mode === "signup");
   document.getElementById("auth-confirm-wrap").classList.toggle("hidden", mode === "login");
+  document.getElementById("auth-password-wrap").classList.remove("hidden");
+  document.getElementById("auth-forgot-wrap").classList.toggle("hidden", mode === "signup");
+  document.getElementById("auth-back-wrap").classList.add("hidden");
+  document.getElementById("auth-legal").classList.remove("hidden");
   document.getElementById("auth-submit").textContent = mode === "login" ? "ENTER SESSION" : "CREATE ACCOUNT";
+  clearAuthMessages();
+}
+
+function switchToReset() {
+  authMode = "reset";
+  document.getElementById("tab-login").classList.remove("active");
+  document.getElementById("tab-signup").classList.remove("active");
+  document.getElementById("auth-password-wrap").classList.add("hidden");
+  document.getElementById("auth-confirm-wrap").classList.add("hidden");
+  document.getElementById("auth-forgot-wrap").classList.add("hidden");
+  document.getElementById("auth-back-wrap").classList.remove("hidden");
+  document.getElementById("auth-legal").classList.add("hidden");
+  document.getElementById("auth-submit").textContent = "SEND RESET LINK";
   clearAuthMessages();
 }
 
@@ -476,12 +505,28 @@ function showAuthMsg(msg) {
 
 async function handleAuth() {
   const email = document.getElementById("auth-email").value.trim();
-  const password = document.getElementById("auth-password").value;
   const btn = document.getElementById("auth-submit");
+  clearAuthMessages();
+
+  if (authMode === "reset") {
+    if (!email) { showAuthError("Enter your email address."); return; }
+    btn.disabled = true;
+    btn.textContent = "...";
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/auth/reset"
+    });
+    btn.disabled = false;
+    btn.textContent = "SEND RESET LINK";
+    if (error) { showAuthError(error.message); return; }
+    showAuthMsg("Check your email for a password reset link.");
+    return;
+  }
+
+  const password = document.getElementById("auth-password").value;
   if (!email || !password) { showAuthError("Email and password are required."); return; }
   btn.disabled = true;
   btn.textContent = "...";
-  clearAuthMessages();
+
 
   if (authMode === "signup") {
     const confirm = document.getElementById("auth-confirm").value;

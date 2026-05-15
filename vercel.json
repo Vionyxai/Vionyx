@@ -3,6 +3,7 @@
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/apply", "destination": "/apply/index.html" },
     { "source": "/auth/confirm", "destination": "/auth/confirm/index.html" },
+    { "source": "/auth/reset", "destination": "/auth/reset/index.html" },
     { "source": "/legal/privacy", "destination": "/legal/privacy/index.html" },
     { "source": "/legal/terms", "destination": "/legal/terms/index.html" }
   ]
