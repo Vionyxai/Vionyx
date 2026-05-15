@@ -165,14 +165,101 @@ function buildSystemPrompt(tier, entries, conversationMemory) {
   return SYSTEM_PROMPT + tierLayer + (patternContext ? "\n\n" + patternContext : "") + (conversationMemory ? "\n\n" + conversationMemory : "");
 }
 
+const PRICE_TIER_MAP = {
+  "price_1TXHMLPNJEiOMPzSWmtb75Rg": 1,
+  "price_1TXHNyPNJEiOMPzSCmY5NTX9": 2,
+  "price_1TXHOcPNJEiOMPzSXWjmbD9L": 3,
+};
+
+const SUPABASE_URL = "https://msyyhgeuqnhksyyqhvsr.supabase.co";
+
+async function verifyStripeSignature(payload, header, secret) {
+  if (!header || !secret) return false;
+  const parts = header.split(",");
+  const timestamp = parts.find(p => p.startsWith("t="))?.slice(2);
+  const signatures = parts.filter(p => p.startsWith("v1=")).map(p => p.slice(3));
+  if (!timestamp || signatures.length === 0) return false;
+  if (Math.abs(Date.now() / 1000 - parseInt(timestamp)) > 300) return false;
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(`${timestamp}.${payload}`));
+  const computed = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
+  return signatures.some(s => s === computed);
+}
+
+async function handleCheckout(request, env) {
+  const { priceId, userId, email } = await request.json();
+  const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      "mode": "subscription",
+      "line_items[0][price]": priceId,
+      "line_items[0][quantity]": "1",
+      "client_reference_id": userId,
+      "customer_email": email,
+      "success_url": "https://vionyx-xi.vercel.app/?upgraded=1",
+      "cancel_url": "https://vionyx-xi.vercel.app/",
+    }),
+  });
+  const data = await res.json();
+  if (!data.url) return new Response(JSON.stringify({ error: data.error?.message || "Checkout failed" }), { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
+  return new Response(JSON.stringify({ url: data.url }), { headers: { ...CORS, "Content-Type": "application/json" } });
+}
+
+async function handleWebhook(request, env) {
+  const rawBody = await request.text();
+  const signature = request.headers.get("stripe-signature");
+  const valid = await verifyStripeSignature(rawBody, signature, env.STRIPE_WEBHOOK_SECRET);
+  if (!valid) return new Response("Invalid signature", { status: 400 });
+
+  const event = JSON.parse(rawBody);
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const userId = session.client_reference_id;
+    const sessionRes = await fetch(`https://api.stripe.com/v1/checkout/sessions/${session.id}?expand[]=line_items`, {
+      headers: { "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}` },
+    });
+    const full = await sessionRes.json();
+    const priceId = full.line_items?.data?.[0]?.price?.id;
+    const tier = PRICE_TIER_MAP[priceId];
+    if (userId && tier) {
+      await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": env.SUPABASE_SERVICE_KEY,
+          "Authorization": `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+          "Prefer": "return=minimal",
+        },
+        body: JSON.stringify({ tier }),
+      });
+    }
+  }
+  return new Response("ok", { status: 200 });
+}
+
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: CORS });
     }
 
+    if (url.pathname === "/webhook") {
+      return handleWebhook(request, env);
+    }
+
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405, headers: CORS });
+    }
+
+    if (url.pathname === "/checkout") {
+      return handleCheckout(request, env);
     }
 
     try {
