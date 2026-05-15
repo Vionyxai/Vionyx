@@ -383,7 +383,6 @@ async function logPatternFlag(flagType, triggerText) {
       user_id: currentUser.id,
       flag_type: flagType,
       trigger_text: triggerText.slice(0, 300),
-      resolved: false,
     });
   } catch (_) {}
 }
