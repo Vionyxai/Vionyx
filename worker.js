@@ -1,5 +1,5 @@
 const CORS = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://vionyx-xi.vercel.app",
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
@@ -189,6 +189,9 @@ async function verifyStripeSignature(payload, header, secret) {
 
 async function handleCheckout(request, env) {
   const { priceId, userId, email } = await request.json();
+  if (!PRICE_TIER_MAP[priceId]) return new Response(JSON.stringify({ error: "Invalid price" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
+  if (!userId || typeof userId !== "string") return new Response(JSON.stringify({ error: "Invalid user" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
+  if (!email || !email.includes("@")) return new Response(JSON.stringify({ error: "Invalid email" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
   const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
     headers: {
