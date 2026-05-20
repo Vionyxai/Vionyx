@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VIONYX — Reflective AI Journal</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#080809" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="VIONYX" />
+  <link rel="apple-touch-icon" href="/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -669,7 +675,7 @@ async function sendMessage() {
   setError(null);
   setLoading(true);
   hideChatEmpty();
-  appendMessage("user", text);
+  const userMsgEl = appendMessage("user", text);
 
   if (detectCrisis(text)) {
     appendCrisisNotice();
@@ -706,7 +712,7 @@ async function sendMessage() {
     appendMessage("assistant", clean, log, showBanner);
     if (isAutoLog) { await persistEntry({ timestamp: new Date().toISOString(), userMsg: text, aiResponse: clean, log }); }
     else if (log) { pendingLog = { userMsg: text, aiResponse: clean, log }; showSaveBanner(log.entry_type); }
-  } catch (err) { removeTyping(typingId); setError(err.message); appendMessage("assistant", "Connection issue. Try sending again."); }
+  } catch (err) { removeTyping(typingId); if (userMsgEl) userMsgEl.remove(); setError("Connection issue. Try sending again."); input.value = text; }
 
   setLoading(false);
   input.focus();
@@ -756,6 +762,7 @@ function appendMessage(role, text, log, pendingSave) {
   }
   chat.appendChild(wrap);
   wrap.scrollIntoView({ behavior: "smooth", block: "end" });
+  return wrap;
 }
 
 function appendTyping() {
@@ -985,6 +992,10 @@ function renderJournal() {
     if (t === "FG Made") { field("TASK", l.fg_title); field("WHAT WAS DONE", l.summary); }
     list.appendChild(card);
   });
+}
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
 }
 </script>
 </body>
