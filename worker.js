@@ -114,6 +114,37 @@ DO NOT: Use holding language. Offer comfort. Soften the reflection. Ask permissi
 
 This mode has no warmth buffer. It is accurate and it is fast.`;
 
+function relativeTime(isoString) {
+  if (!isoString) return "";
+  const now = new Date();
+  const then = new Date(isoString);
+  const days = Math.floor((now - then) / (1000 * 60 * 60 * 24));
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return days + " days ago";
+  if (days < 30) return Math.floor(days / 7) + " week" + (Math.floor(days / 7) === 1 ? "" : "s") + " ago";
+  if (days < 365) return Math.floor(days / 30) + " month" + (Math.floor(days / 30) === 1 ? "" : "s") + " ago";
+  return Math.floor(days / 365) + " year" + (Math.floor(days / 365) === 1 ? "" : "s") + " ago";
+}
+
+function buildTimeContext(now, lastMessageTime) {
+  const nowDate = now ? new Date(now) : new Date();
+  const formatted = nowDate.toLocaleString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  let ctx = "\n\nTIME AWARENESS (invisible to user — use naturally, never announce directly):\nCurrent date and time: " + formatted + ".";
+  if (lastMessageTime) {
+    const gapMs = nowDate - new Date(lastMessageTime);
+    const gapHours = gapMs / (1000 * 60 * 60);
+    if (gapHours >= 1 && gapHours < 24) {
+      const h = Math.round(gapHours);
+      ctx += "\nTime since last session: " + h + " hour" + (h === 1 ? "" : "s") + ". User has been away — factor this into tone and continuity naturally. Do not announce the time gap.";
+    } else if (gapHours >= 24) {
+      const d = Math.round(gapHours / 24);
+      ctx += "\nTime since last session: " + d + " day" + (d === 1 ? "" : "s") + ". User is returning after time away — factor this into tone and continuity naturally. Do not announce the time gap.";
+    }
+  }
+  return ctx;
+}
+
 function buildPatternContext(entries) {
   if (!entries || entries.length === 0) return "";
   const recent = entries.slice(0, 30);
@@ -124,6 +155,7 @@ function buildPatternContext(entries) {
   tierA.slice(0, 15).forEach(e => {
     const l = e.log || {};
     const parts = ["Type: " + l.entry_type];
+    if (e.timestamp) parts.push("When: " + relativeTime(e.timestamp));
     if (l.emotional_trigger) parts.push("Trigger: " + l.emotional_trigger);
     if (l.unfiltered_expression) parts.push("Expression: " + l.unfiltered_expression.slice(0, 120));
     signals.push(parts.join(" | "));
@@ -131,6 +163,7 @@ function buildPatternContext(entries) {
   tierB.slice(0, 10).forEach(e => {
     const l = e.log || {};
     const parts = ["Type: " + l.entry_type];
+    if (e.timestamp) parts.push("When: " + relativeTime(e.timestamp));
     if (l.emotional_trigger) parts.push("Trigger: " + l.emotional_trigger);
     if (l.unfiltered_expression) parts.push("Expression: " + l.unfiltered_expression.slice(0, 80));
     signals.push(parts.join(" | "));
@@ -138,6 +171,7 @@ function buildPatternContext(entries) {
   tierC.slice(0, 5).forEach(e => {
     const l = e.log || {};
     const parts = ["Type: " + l.entry_type];
+    if (e.timestamp) parts.push("When: " + relativeTime(e.timestamp));
     if (l.commitment_type) parts.push("Commitment: " + l.commitment_type);
     if (l.fg_title) parts.push("Completed: " + l.fg_title);
     signals.push(parts.join(" | "));
@@ -156,13 +190,14 @@ ${filtered.join("\n")}
 Pattern instruction: When you detect a recurring trigger, emotional pattern, or behavioral loop that matches something in this history, reflect it back as a present observation — not a memory. Make the user feel deeply understood, not tracked.`;
 }
 
-function buildSystemPrompt(tier, entries, conversationMemory) {
+function buildSystemPrompt(tier, entries, conversationMemory, now, lastMessageTime) {
   let tierLayer = "";
   if (tier === 1) tierLayer = SYSTEM_PROMPT_TIER1;
   else if (tier === 2) tierLayer = SYSTEM_PROMPT_TIER2;
   else if (tier >= 3) tierLayer = SYSTEM_PROMPT_TIER3;
   const patternContext = buildPatternContext(entries);
-  return SYSTEM_PROMPT + tierLayer + (patternContext ? "\n\n" + patternContext : "") + (conversationMemory ? "\n\n" + conversationMemory : "");
+  const timeContext = buildTimeContext(now, lastMessageTime);
+  return SYSTEM_PROMPT + tierLayer + timeContext + (patternContext ? "\n\n" + patternContext : "") + (conversationMemory ? "\n\n" + conversationMemory : "");
 }
 
 const PRICE_TIER_MAP = {
@@ -266,8 +301,8 @@ export default {
     }
 
     try {
-      const { tier, entries, conversationMemory, messages } = await request.json();
-      const system = buildSystemPrompt(tier || 1, entries || [], conversationMemory || "");
+      const { tier, entries, conversationMemory, messages, now, lastMessageTime } = await request.json();
+      const system = buildSystemPrompt(tier || 1, entries || [], conversationMemory || "", now, lastMessageTime);
 
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
