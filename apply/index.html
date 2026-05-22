@@ -500,7 +500,7 @@
       if (error && error.code !== "23505") {
         btn.disabled = false;
         btn.textContent = "SUBMIT APPLICATION";
-        showError("Something went wrong. Please try again.");
+        showError(error.message || "Something went wrong. Please try again.");
         return;
       }
 
