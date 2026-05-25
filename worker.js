@@ -300,6 +300,11 @@ export default {
       return handleCheckout(request, env);
     }
 
+    const contentLength = parseInt(request.headers.get("content-length") || "0");
+    if (contentLength > 102400) {
+      return new Response(JSON.stringify({ error: "Request too large" }), { status: 413, headers: { ...CORS, "Content-Type": "application/json" } });
+    }
+
     try {
       const { tier, entries, conversationMemory, messages, now, lastMessageTime } = await request.json();
       const system = buildSystemPrompt(tier || 1, entries || [], conversationMemory || "", now, lastMessageTime);
