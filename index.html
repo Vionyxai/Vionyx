@@ -336,6 +336,9 @@
         </div>
       </div>
       <div id="upgrade-error" class="auth-error hidden"></div>
+      <div id="manage-sub-wrap" style="margin-top:16px;text-align:center;display:none;">
+        <button id="manage-sub-btn" onclick="manageSubscription()" style="background:transparent;border:none;font-size:12px;color:var(--text3);font-family:'Syne',sans-serif;letter-spacing:0.06em;cursor:pointer;text-decoration:underline;padding:4px 0;">Manage or cancel subscription</button>
+      </div>
     </div>
   </div>
 
@@ -813,7 +816,36 @@ function openUpgradePanel() {
     }
   });
   document.getElementById("upgrade-error").classList.add("hidden");
+  const manageWrap = document.getElementById("manage-sub-wrap");
+  if (manageWrap) manageWrap.style.display = currentUserTier > 0 ? "block" : "none";
   document.getElementById("upgrade-panel").classList.remove("hidden");
+}
+
+async function manageSubscription() {
+  const btn = document.getElementById("manage-sub-btn");
+  btn.textContent = "Opening...";
+  btn.style.pointerEvents = "none";
+  try {
+    const res = await fetch(WORKER_URL + "/portal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: currentUser.email }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      document.getElementById("upgrade-error").textContent = data.error || "Could not open portal.";
+      document.getElementById("upgrade-error").classList.remove("hidden");
+      btn.textContent = "Manage or cancel subscription";
+      btn.style.pointerEvents = "";
+    }
+  } catch {
+    document.getElementById("upgrade-error").textContent = "Connection error. Try again.";
+    document.getElementById("upgrade-error").classList.remove("hidden");
+    btn.textContent = "Manage or cancel subscription";
+    btn.style.pointerEvents = "";
+  }
 }
 
 async function checkoutTier(tier) {

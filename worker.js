@@ -222,6 +222,31 @@ async function verifyStripeSignature(payload, header, secret) {
   return signatures.some(s => s === computed);
 }
 
+async function handlePortal(request, env) {
+  const { email } = await request.json();
+  if (!email || !email.includes("@")) return new Response(JSON.stringify({ error: "Invalid email" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
+  const search = await fetch(`https://api.stripe.com/v1/customers?email=${encodeURIComponent(email)}&limit=1`, {
+    headers: { "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}` },
+  });
+  const customers = await search.json();
+  const customer = customers.data?.[0]?.id;
+  if (!customer) return new Response(JSON.stringify({ error: "No subscription found for this account." }), { status: 404, headers: { ...CORS, "Content-Type": "application/json" } });
+  const portal = await fetch("https://api.stripe.com/v1/billing_portal/sessions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      "customer": customer,
+      "return_url": "https://vionyx-xi.vercel.app/",
+    }),
+  });
+  const portalData = await portal.json();
+  if (!portalData.url) return new Response(JSON.stringify({ error: portalData.error?.message || "Portal unavailable" }), { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
+  return new Response(JSON.stringify({ url: portalData.url }), { headers: { ...CORS, "Content-Type": "application/json" } });
+}
+
 async function handleCheckout(request, env) {
   const { priceId, userId, email } = await request.json();
   if (!PRICE_TIER_MAP[priceId]) return new Response(JSON.stringify({ error: "Invalid price" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
@@ -298,6 +323,10 @@ export default {
 
     if (url.pathname === "/checkout") {
       return handleCheckout(request, env);
+    }
+
+    if (url.pathname === "/portal") {
+      return handlePortal(request, env);
     }
 
     const contentLength = parseInt(request.headers.get("content-length") || "0");
