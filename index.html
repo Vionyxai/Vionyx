@@ -87,6 +87,8 @@
     .typing-dot:nth-child(3) { animation-delay: 0.4s; }
     @keyframes pulse { 0%,80%,100%{opacity:0.3;transform:scale(0.9)}40%{opacity:1;transform:scale(1)} }
     .err-bar { margin: 0 24px 8px; background: #2d0f0f; border: 1px solid #5c1f1f; border-radius: 8px; padding: 8px 14px; font-size: 11px; color: #ef4444; flex-shrink: 0; }
+    .app-toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px; padding: 10px 20px; font-size: 12px; color: var(--text2); font-family: 'Syne', sans-serif; letter-spacing: 0.04em; z-index: 9999; white-space: nowrap; pointer-events: none; animation: toastIn 0.25s ease; }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
     .save-banner { margin: 0 24px; background: var(--bg2); border: 1px solid var(--border2); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
     .save-banner-label { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 8px; }
     .save-actions { display: flex; gap: 8px; }
@@ -426,7 +428,7 @@ window.addEventListener("load", async () => {
     await showApp();
     if (new URLSearchParams(window.location.search).get("upgraded") === "1") {
       history.replaceState({}, "", "/");
-      showAuthMsg("Payment successful. Your tier will activate within a few seconds — refresh if it doesn't update.");
+      showToast("Payment successful. Your tier will activate within a few seconds — refresh if it doesn't update.", 6000);
     }
   }
   else { document.getElementById("auth-screen").classList.remove("hidden"); }
@@ -783,6 +785,7 @@ function appendTyping() {
 }
 
 function removeTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
+function showToast(msg, duration = 4000) { const t = document.createElement("div"); t.className = "app-toast"; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), duration); }
 function showSaveBanner(t) { const c = ENTRY_COLORS[t] || {}; document.getElementById("save-dot").style.background = c.dot || "#6b7280"; document.getElementById("save-banner").classList.remove("hidden"); }
 function hideSaveBanner() { document.getElementById("save-banner").classList.add("hidden"); }
 async function confirmSave() { if (!pendingLog) return; await persistEntry({ timestamp: new Date().toISOString(), userMsg: pendingLog.userMsg, aiResponse: pendingLog.aiResponse, log: pendingLog.log }); pendingLog = null; hideSaveBanner(); }
@@ -817,7 +820,7 @@ function openUpgradePanel() {
   });
   document.getElementById("upgrade-error").classList.add("hidden");
   const manageWrap = document.getElementById("manage-sub-wrap");
-  if (manageWrap) manageWrap.style.display = currentUserTier > 0 ? "block" : "none";
+  if (manageWrap) manageWrap.style.display = currentUserTier > 1 ? "block" : "none";
   document.getElementById("upgrade-panel").classList.remove("hidden");
 }
 

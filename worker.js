@@ -223,6 +223,8 @@ async function verifyStripeSignature(payload, header, secret) {
 }
 
 async function handlePortal(request, env) {
+  const contentLength = parseInt(request.headers.get("content-length") || "0");
+  if (contentLength > 4096) return new Response(JSON.stringify({ error: "Request too large" }), { status: 413, headers: { ...CORS, "Content-Type": "application/json" } });
   const { email } = await request.json();
   if (!email || !email.includes("@")) return new Response(JSON.stringify({ error: "Invalid email" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
   const search = await fetch(`https://api.stripe.com/v1/customers?email=${encodeURIComponent(email)}&limit=1`, {
@@ -298,10 +300,25 @@ async function handleWebhook(request, env) {
           "Authorization": `Bearer ${env.SUPABASE_SERVICE_KEY}`,
           "Prefer": "return=minimal",
         },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ tier, stripe_customer_id: full.customer }),
       });
     }
   }
+
+  if (event.type === "customer.subscription.deleted") {
+    const customerId = event.data.object.customer;
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?stripe_customer_id=eq.${encodeURIComponent(customerId)}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": env.SUPABASE_SERVICE_KEY,
+        "Authorization": `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+        "Prefer": "return=minimal",
+      },
+      body: JSON.stringify({ tier: 1 }),
+    });
+  }
+
   return new Response("ok", { status: 200 });
 }
 
